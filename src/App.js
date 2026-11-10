@@ -28,7 +28,10 @@ import {
   animarHoverTarjeta,
   inicializarSmoothScrollLenis,
   animarScrollRevealGSAP,
-  animarParallaxLotusGSAP
+  animarParallaxLotusGSAP,
+  yaFueAnimada,
+  marcarComoAnimada,
+  scrollAlInicioInmediato
 } from './utils/animaciones';
 import {
   AuroraGlassBackground,
@@ -120,6 +123,7 @@ function LotusWatermark() {
 
 function Inicio() {
   const inicioRef = useRef(null);
+  const animarBlurHero = !yaFueAnimada('vista-inicio');
 
   const equipo = [
     { nombre: 'Lucas Colque', rol: 'QA & Testing', habilidades: ['Postman', 'Git', 'Jest'] },
@@ -128,52 +132,55 @@ function Inicio() {
     { nombre: 'Pilar Alvarado', rol: 'Frontend & UI/UX', habilidades: ['React', 'CSS', 'APIs'] }
   ];
 
-  // Orquestación Hero con anime.timeline(), spring(1, 80, 10, 0) + Scroll Reveal con GSAP ScrollTrigger
+  // Orquestación Hero con anime.timeline() sin rebote + Scroll Reveal GSAP (solo la primera visita de la sesión)
   useLayoutEffect(() => {
     const scope = inicioRef.current;
-    if (!scope) return;
+    if (!scope || yaFueAnimada('vista-inicio')) return undefined;
 
     const tl = anime.timeline({
-      easing: 'spring(1, 80, 10, 0)',
-      duration: 1000,
+      easing: 'cubicBezier(0.22, 1, 0.36, 1)',
+      duration: 620,
       root: scope
     });
 
     tl.add({
       targets: '.hero-badge',
-      translateY: [-28, 0],
-      scale: [0.85, 1],
+      translateY: [-10, 0],
+      scale: [0.96, 1],
       opacity: [0, 1]
     })
       .add(
         {
           targets: '.hero-title-part',
-          translateY: [55, 0],
-          scale: [0.94, 1],
+          translateY: [18, 0],
           opacity: [0, 1],
-          delay: anime.stagger(110)
+          delay: anime.stagger(65)
         },
-        '-=820'
+        '-=480'
       )
       .add(
         {
           targets: '.hero-cta-btn',
-          translateY: [32, 0],
-          scale: [0.92, 1],
+          translateY: [14, 0],
           opacity: [0, 1],
-          delay: anime.stagger(100)
+          delay: anime.stagger(55)
         },
-        '-=760'
+        '-=440'
       );
 
     const limpiarGSAP = animarScrollRevealGSAP(scope, [
-      { selector: '.seccion-header', y: 20, staggerDelay: 0.1 },
-      { selector: '.card-animada', y: 34, staggerDelay: 0.11 },
-      { selector: '.glass-insight-block', y: 36, staggerDelay: 0.1 },
-      { selector: '.team-animada', y: 32, staggerDelay: 0.09 }
+      { selector: '.seccion-header', y: 14, staggerDelay: 0.05 },
+      { selector: '.card-animada', y: 20, staggerDelay: 0.06 },
+      { selector: '.glass-insight-block', y: 22, staggerDelay: 0.06 },
+      { selector: '.team-animada', y: 20, staggerDelay: 0.06 }
     ]);
 
+    const timerMarca = setTimeout(() => {
+      marcarComoAnimada('vista-inicio');
+    }, 180);
+
     return () => {
+      clearTimeout(timerMarca);
       tl.revert();
       limpiarGSAP();
     };
@@ -199,7 +206,7 @@ function Inicio() {
             className="hero-elemento hero-title-part inline-block"
             style={{ willChange: 'transform, opacity' }}
           >
-            <BlurText text="Construyendo experiencias digitales" delayStep={75} />{' '}
+            <BlurText text="Construyendo experiencias digitales" delayStep={55} animado={animarBlurHero} />{' '}
           </span>
           <span
             className="hero-elemento hero-title-part text-gradient inline-block"
@@ -538,65 +545,78 @@ function GestionProyectos({ seccionInicial = 'proyectos' }) {
 
   const adminPanelRef = useRef(null);
 
-  // Orquestación de cabecera y pestañas administrativas con anime.timeline()
+  // Orquestación de cabecera y pestañas administrativas (solo en la primera visita)
   useLayoutEffect(() => {
     const scope = adminPanelRef.current;
-    if (!scope) return;
+    if (!scope || yaFueAnimada('admin-shell')) return undefined;
 
     const tl = anime.timeline({
-      easing: 'spring(1, 80, 10, 0)',
-      duration: 900,
+      easing: 'cubicBezier(0.22, 1, 0.36, 1)',
+      duration: 540,
       root: scope
     });
 
     tl.add({
       targets: '.admin-header-anim',
-      translateY: [-22, 0],
+      translateY: [-10, 0],
       opacity: [0, 1]
     }).add(
       {
         targets: '.admin-tab',
-        translateY: [18, 0],
-        scale: [0.94, 1],
+        translateY: [10, 0],
         opacity: [0, 1],
-        delay: anime.stagger(55)
+        delay: anime.stagger(35)
       },
-      '-=720'
+      '-=420'
     );
 
-    return () => tl.revert();
+    const timerMarca = setTimeout(() => {
+      marcarComoAnimada('admin-shell');
+    }, 180);
+
+    return () => {
+      clearTimeout(timerMarca);
+      tl.revert();
+    };
   }, []);
 
-  // Cascada escalonada cuando se renderiza la sección de Proyectos en el panel Admin
+  // Cascada escalonada una sola vez cuando cargan los Proyectos en el panel Admin
   useLayoutEffect(() => {
-    if (seccionActiva !== 'proyectos') return;
+    if (seccionActiva !== 'proyectos' || cargando || yaFueAnimada('admin-proyectos')) {
+      return undefined;
+    }
     const scope = adminPanelRef.current;
-    if (!scope) return;
+    if (!scope) return undefined;
 
     const tl = anime.timeline({
-      easing: 'spring(1, 80, 10, 0)',
-      duration: 950,
+      easing: 'cubicBezier(0.22, 1, 0.36, 1)',
+      duration: 560,
       root: scope
     });
 
     tl.add({
       targets: '.admin-form-proyectos',
-      translateY: [28, 0],
-      scale: [0.98, 1],
+      translateY: [16, 0],
       opacity: [0, 1]
     }).add(
       {
         targets: '.proyecto-admin-card',
-        translateY: [42, 0],
-        scale: [0.93, 1],
+        translateY: [18, 0],
         opacity: [0, 1],
-        delay: anime.stagger(90)
+        delay: anime.stagger(55)
       },
-      '-=680'
+      '-=420'
     );
 
-    return () => tl.revert();
-  }, [seccionActiva, cargando, proyectos.length]);
+    const timerMarca = setTimeout(() => {
+      marcarComoAnimada('admin-proyectos');
+    }, 180);
+
+    return () => {
+      clearTimeout(timerMarca);
+      tl.revert();
+    };
+  }, [seccionActiva, cargando]);
 
   return (
     <div ref={adminPanelRef} style={{ maxWidth: '1050px', margin: '50px auto', padding: '0 20px' }}>
@@ -1036,6 +1056,17 @@ function FooterLotus() {
   );
 }
 
+// Garantiza que al cambiar de sección/ruta la nueva vista arranque siempre arriba del todo.
+function ScrollAlInicio() {
+  const { pathname } = useLocation();
+
+  useLayoutEffect(() => {
+    scrollAlInicioInmediato();
+  }, [pathname]);
+
+  return null;
+}
+
 export default function App() {
   const [usuarioActual, setUsuarioActual] = useState(() => {
     try {
@@ -1079,6 +1110,7 @@ export default function App() {
   return (
     <AuthContext.Provider value={{ usuarioActual, esAdmin, iniciarSesion, cerrarSesion }}>
       <Router>
+        <ScrollAlInicio />
         <AuroraGlassBackground />
         <LotusWatermark />
         <div className="app-shell">

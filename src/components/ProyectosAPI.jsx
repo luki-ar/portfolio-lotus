@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import { anime, animarHoverTarjeta } from '../utils/animaciones';
+import {
+  anime,
+  animarHoverTarjeta,
+  yaFueAnimada,
+  marcarComoAnimada
+} from '../utils/animaciones';
 
 const GITHUB_USUARIO = 'luki-ar';
 const GITHUB_API_URL = `https://api.github.com/users/${GITHUB_USUARIO}/repos?sort=updated&per_page=12`;
@@ -217,34 +222,42 @@ export default function ProyectosAPI() {
     setRecargaToken((n) => n + 1);
   };
 
-  // Cascada escalonada con anime.timeline() y spring(1, 80, 10, 0) al cargar los repositorios
+  // Cascada escalonada una sola vez al cargar los repositorios de GitHub
   useLayoutEffect(() => {
-    if (cargando || repos.length === 0) return;
+    if (cargando || repos.length === 0 || yaFueAnimada('vista-repos-github')) {
+      return undefined;
+    }
     const scope = reposRef.current;
-    if (!scope) return;
+    if (!scope) return undefined;
 
     const tl = anime.timeline({
-      easing: 'spring(1, 80, 10, 0)',
-      duration: 950,
+      easing: 'cubicBezier(0.22, 1, 0.36, 1)',
+      duration: 540,
       root: scope
     });
 
     tl.add({
       targets: '.repos-header',
-      translateY: [-18, 0],
+      translateY: [-10, 0],
       opacity: [0, 1]
     }).add(
       {
         targets: '.repo-card-anim',
-        translateY: [45, 0],
-        scale: [0.93, 1],
+        translateY: [18, 0],
         opacity: [0, 1],
-        delay: anime.stagger(75)
+        delay: anime.stagger(45)
       },
-      '-=750'
+      '-=400'
     );
 
-    return () => tl.revert();
+    const timerMarca = setTimeout(() => {
+      marcarComoAnimada('vista-repos-github');
+    }, 180);
+
+    return () => {
+      clearTimeout(timerMarca);
+      tl.revert();
+    };
   }, [cargando, repos.length]);
 
   if (cargando) {

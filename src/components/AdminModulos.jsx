@@ -19,7 +19,12 @@ import {
   respuestaContactoSchema,
   validarConEsquema
 } from '../utils/validaciones';
-import { anime, animarHoverTarjeta } from '../utils/animaciones';
+import {
+  anime,
+  animarHoverTarjeta,
+  yaFueAnimada,
+  marcarComoAnimada
+} from '../utils/animaciones';
 
 const COLORES_PIE = ['#6366f1', '#ec4899', '#3b82f6'];
 const CATEGORIAS_SERVICIO = [
@@ -146,33 +151,39 @@ export function GestionDemos({ pedirAPI, proyectos = [], onCambioContenido }) {
   const demosRef = useRef(null);
 
   useLayoutEffect(() => {
+    if (cargando || yaFueAnimada('admin-demos')) return undefined;
     const scope = demosRef.current;
-    if (!scope) return;
+    if (!scope) return undefined;
 
     const tl = anime.timeline({
-      easing: 'spring(1, 80, 10, 0)',
-      duration: 950,
+      easing: 'cubicBezier(0.22, 1, 0.36, 1)',
+      duration: 540,
       root: scope
     });
 
     tl.add({
       targets: '.demos-form-card',
-      translateY: [28, 0],
-      scale: [0.98, 1],
+      translateY: [16, 0],
       opacity: [0, 1]
     }).add(
       {
         targets: '.demo-admin-card',
-        translateY: [44, 0],
-        scale: [0.93, 1],
+        translateY: [18, 0],
         opacity: [0, 1],
-        delay: anime.stagger(95)
+        delay: anime.stagger(50)
       },
-      '-=700'
+      '-=400'
     );
 
-    return () => tl.revert();
-  }, [cargando, demos.length]);
+    const timerMarca = setTimeout(() => {
+      marcarComoAnimada('admin-demos');
+    }, 180);
+
+    return () => {
+      clearTimeout(timerMarca);
+      tl.revert();
+    };
+  }, [cargando]);
 
   return (
     <div ref={demosRef}>
@@ -389,33 +400,39 @@ export function GestionServicios({ pedirAPI, onCambioContenido }) {
   }, [pedirAPI]);
 
   useLayoutEffect(() => {
+    if (cargando || yaFueAnimada('admin-servicios')) return undefined;
     const scope = serviciosRef.current;
-    if (!scope) return;
+    if (!scope) return undefined;
 
     const tl = anime.timeline({
-      easing: 'spring(1, 80, 10, 0)',
-      duration: 950,
+      easing: 'cubicBezier(0.22, 1, 0.36, 1)',
+      duration: 540,
       root: scope
     });
 
     tl.add({
       targets: '.servicios-form-card',
-      translateY: [28, 0],
-      scale: [0.98, 1],
+      translateY: [16, 0],
       opacity: [0, 1]
     }).add(
       {
         targets: '.servicio-admin-card',
-        translateY: [44, 0],
-        scale: [0.93, 1],
+        translateY: [18, 0],
         opacity: [0, 1],
-        delay: anime.stagger(95)
+        delay: anime.stagger(50)
       },
-      '-=700'
+      '-=400'
     );
 
-    return () => tl.revert();
-  }, [cargando, servicios.length]);
+    const timerMarca = setTimeout(() => {
+      marcarComoAnimada('admin-servicios');
+    }, 180);
+
+    return () => {
+      clearTimeout(timerMarca);
+      tl.revert();
+    };
+  }, [cargando]);
 
   const iniciarEdicionServicio = (srv) => {
     setError(null);
@@ -827,42 +844,48 @@ export function PanelUsuarios({ pedirAPI, onCambioUsuarios }) {
   const usuariosRef = useRef(null);
 
   useLayoutEffect(() => {
+    if (cargando || yaFueAnimada('admin-usuarios')) return undefined;
     const scope = usuariosRef.current;
-    if (!scope) return;
+    if (!scope) return undefined;
 
     const tl = anime.timeline({
-      easing: 'spring(1, 80, 10, 0)',
-      duration: 900,
+      easing: 'cubicBezier(0.22, 1, 0.36, 1)',
+      duration: 520,
       root: scope
     });
 
     tl.add({
       targets: '.usuarios-form-card',
-      translateY: [26, 0],
-      scale: [0.98, 1],
+      translateY: [16, 0],
       opacity: [0, 1]
     })
       .add(
         {
           targets: '.tabla-contenedor',
-          translateY: [32, 0],
-          opacity: [0, 1],
-          easing: 'cubicBezier(0.22, 1, 0.36, 1)'
+          translateY: [16, 0],
+          opacity: [0, 1]
         },
-        '-=680'
+        '-=390'
       )
       .add(
         {
           targets: '.fila-usuario-anim',
-          translateX: [-20, 0],
+          translateX: [-12, 0],
           opacity: [0, 1],
-          delay: anime.stagger(55)
+          delay: anime.stagger(35)
         },
-        '-=620'
+        '-=350'
       );
 
-    return () => tl.revert();
-  }, [cargando, usuarios.length, filtroRol]);
+    const timerMarca = setTimeout(() => {
+      marcarComoAnimada('admin-usuarios');
+    }, 180);
+
+    return () => {
+      clearTimeout(timerMarca);
+      tl.revert();
+    };
+  }, [cargando]);
 
   return (
     <div ref={usuariosRef}>
@@ -1180,34 +1203,41 @@ export function GestionContactos({ pedirAPI }) {
     return true;
   });
 
-  // Orquestación sofisticada de entrada para la Bandeja de Contactos
+  // Orquestación de entrada una sola vez para la Bandeja de Contactos
   useLayoutEffect(() => {
+    if (cargando || yaFueAnimada('admin-contactos')) return undefined;
     const scope = contactosRef.current;
-    if (!scope) return;
+    if (!scope) return undefined;
 
     const tl = anime.timeline({
-      easing: 'spring(1, 80, 10, 0)',
-      duration: 900,
+      easing: 'cubicBezier(0.22, 1, 0.36, 1)',
+      duration: 540,
       root: scope
     });
 
     tl.add({
       targets: '.contactos-header-anim',
-      translateY: [-18, 0],
+      translateY: [-10, 0],
       opacity: [0, 1]
     }).add(
       {
         targets: '.contacto-admin-card',
-        translateY: [38, 0],
-        scale: [0.96, 1],
+        translateY: [18, 0],
         opacity: [0, 1],
-        delay: anime.stagger(85)
+        delay: anime.stagger(50)
       },
-      '-=700'
+      '-=400'
     );
 
-    return () => tl.revert();
-  }, [cargando, filtrados.length, filtroEstado]);
+    const timerMarca = setTimeout(() => {
+      marcarComoAnimada('admin-contactos');
+    }, 180);
+
+    return () => {
+      clearTimeout(timerMarca);
+      tl.revert();
+    };
+  }, [cargando]);
 
   return (
     <div ref={contactosRef}>
@@ -1442,46 +1472,51 @@ export function DashboardMetricas({ pedirAPI, refrescarTrigger }) {
 
   const hayDatos = Boolean(datos);
 
-  // Orquestación de entrada para KPIs, barra de filtros SQL y paneles de gráficos Recharts
+  // Orquestación de entrada una sola vez para KPIs, filtros SQL y gráficos Recharts
   useLayoutEffect(() => {
+    if (!hayDatos || yaFueAnimada('admin-dashboard')) return undefined;
     const scope = dashboardRef.current;
-    if (!scope) return;
+    if (!scope) return undefined;
 
     const tl = anime.timeline({
-      easing: 'spring(1, 80, 10, 0)',
-      duration: 1000,
+      easing: 'cubicBezier(0.22, 1, 0.36, 1)',
+      duration: 560,
       root: scope
     });
 
     tl.add({
       targets: '.kpi-card',
-      translateY: [38, 0],
-      scale: [0.92, 1],
+      translateY: [18, 0],
       opacity: [0, 1],
-      delay: anime.stagger(100)
+      delay: anime.stagger(60)
     })
       .add(
         {
           targets: '.dashboard-filtros-card',
-          translateY: [24, 0],
-          opacity: [0, 1],
-          easing: 'cubicBezier(0.22, 1, 0.36, 1)'
+          translateY: [14, 0],
+          opacity: [0, 1]
         },
-        '-=740'
+        '-=420'
       )
       .add(
         {
           targets: '.dashboard-chart-card',
-          translateY: [48, 0],
-          scale: [0.95, 1],
+          translateY: [20, 0],
           opacity: [0, 1],
-          delay: anime.stagger(130)
+          delay: anime.stagger(70)
         },
-        '-=680'
+        '-=390'
       );
 
-    return () => tl.revert();
-  }, [hayDatos, dias, seccion]);
+    const timerMarca = setTimeout(() => {
+      marcarComoAnimada('admin-dashboard');
+    }, 180);
+
+    return () => {
+      clearTimeout(timerMarca);
+      tl.revert();
+    };
+  }, [hayDatos]);
 
   const registrarVisitaManual = async (tipo) => {
     setRegistrando(true);

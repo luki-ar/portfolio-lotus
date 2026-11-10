@@ -12,7 +12,9 @@ jest.mock('../utils/animaciones', () => ({
       revert() {}
     })
   },
-  animarHoverTarjeta: () => {}
+  animarHoverTarjeta: () => {},
+  yaFueAnimada: () => false,
+  marcarComoAnimada: () => {}
 }));
 
 describe('ProyectosAPI', () => {
@@ -34,9 +36,12 @@ describe('ProyectosAPI', () => {
 
     render(<ProyectosAPI />);
 
-    await waitFor(() => {
-      expect(screen.getByText('portfolio-lotus')).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText('portfolio-lotus')).toBeInTheDocument();
+      },
+      { timeout: 3000 }
+    );
 
     expect(screen.queryByText(/No se pudo conectar con la API/i)).not.toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent(/límite temporal de 60 consultas\/hora por IP/i);

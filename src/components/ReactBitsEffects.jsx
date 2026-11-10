@@ -18,8 +18,13 @@ export function ShinyText({ children, className = '', speed = 4 }) {
 /**
  * React Bits — BlurText
  * Revelado palabra por palabra con desenfoque óptico progresivo (blur-to-crisp).
+ * Cuando `animado` es false (al volver a una vista ya visitada), renderiza texto nítido inmediato.
  */
-export function BlurText({ text = '', className = '', delayStep = 70 }) {
+export function BlurText({ text = '', className = '', delayStep = 55, animado = true }) {
+  if (!animado) {
+    return <span className={`rb-blur-text-wrap ${className}`.trim()}>{text}</span>;
+  }
+
   const palabras = String(text).trim().split(/\s+/).filter(Boolean);
 
   return (

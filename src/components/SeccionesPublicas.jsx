@@ -8,7 +8,13 @@ import {
   validarConEsquema,
   validarArchivoAdjunto
 } from '../utils/validaciones';
-import { anime, animarHoverTarjeta, animarScrollRevealGSAP } from '../utils/animaciones';
+import {
+  anime,
+  animarHoverTarjeta,
+  animarScrollRevealGSAP,
+  yaFueAnimada,
+  marcarComoAnimada
+} from '../utils/animaciones';
 import { ShinyText } from './ReactBitsEffects';
 
 // =====================================================================
@@ -67,64 +73,76 @@ export function PresentacionProfesional({ pedirAPI }) {
       .finally(() => setCargandoServicios(false));
   }, [pedirAPI]);
 
-  // Orquestación de entrada con anime.timeline() y spring(1, 80, 10, 0) + Scroll Reveal con GSAP ScrollTrigger
+  // Orquestación de entrada + Scroll Reveal GSAP (solo la primera visita a /perfil)
   useLayoutEffect(() => {
     const scope = perfilRef.current;
-    if (!scope) return;
+    if (!scope || yaFueAnimada('vista-perfil-hero')) return undefined;
 
     const tl = anime.timeline({
-      easing: 'spring(1, 80, 10, 0)',
-      duration: 1000,
+      easing: 'cubicBezier(0.22, 1, 0.36, 1)',
+      duration: 580,
       root: scope
     });
 
     tl.add({
       targets: '.perfil-hero-card',
-      translateY: [38, 0],
-      scale: [0.97, 1],
+      translateY: [18, 0],
       opacity: [0, 1]
     }).add(
       {
         targets: '.perfil-hero-item',
-        translateY: [28, 0],
+        translateY: [14, 0],
         opacity: [0, 1],
-        delay: anime.stagger(95)
+        delay: anime.stagger(55)
       },
-      '-=800'
+      '-=440'
     );
 
     const limpiarGSAP = animarScrollRevealGSAP(scope, [
-      { selector: '.stack-card', y: 32, staggerDelay: 0.09 },
-      { selector: '.experiencia-card', y: 24, staggerDelay: 0.1 }
+      { selector: '.stack-card', y: 20, staggerDelay: 0.06 },
+      { selector: '.experiencia-card', y: 18, staggerDelay: 0.06 }
     ]);
 
+    const timerMarca = setTimeout(() => {
+      marcarComoAnimada('vista-perfil-hero');
+    }, 180);
+
     return () => {
+      clearTimeout(timerMarca);
       tl.revert();
       limpiarGSAP();
     };
   }, []);
 
-  // Cascada escalonada cuando terminan de cargar los servicios ofertados desde Supabase
+  // Cascada escalonada una sola vez cuando cargan los servicios ofertados desde Supabase
   useLayoutEffect(() => {
-    if (cargandoServicios || servicios.length === 0) return;
+    if (cargandoServicios || servicios.length === 0 || yaFueAnimada('vista-perfil-servicios')) {
+      return undefined;
+    }
     const scope = perfilRef.current;
-    if (!scope) return;
+    if (!scope) return undefined;
 
     const tl = anime.timeline({
-      easing: 'spring(1, 80, 10, 0)',
-      duration: 950,
+      easing: 'cubicBezier(0.22, 1, 0.36, 1)',
+      duration: 540,
       root: scope
     });
 
     tl.add({
       targets: '.servicio-publico-card',
-      translateY: [44, 0],
-      scale: [0.93, 1],
+      translateY: [18, 0],
       opacity: [0, 1],
-      delay: anime.stagger(100)
+      delay: anime.stagger(55)
     });
 
-    return () => tl.revert();
+    const timerMarca = setTimeout(() => {
+      marcarComoAnimada('vista-perfil-servicios');
+    }, 180);
+
+    return () => {
+      clearTimeout(timerMarca);
+      tl.revert();
+    };
   }, [cargandoServicios, servicios.length]);
 
   return (
@@ -294,6 +312,7 @@ export function PresentacionProfesional({ pedirAPI }) {
 // 2. FORMULARIO DE CONTACTO (Con validación Zod + Archivo + Nodemailer en Backend)
 // =====================================================================
 export function FormularioContacto({ pedirAPI }) {
+  const animarPrimeraVisitaRef = useRef(!yaFueAnimada('vista-contacto'));
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [tipoConsulta, setTipoConsulta] = useState('Consulta General');
@@ -304,6 +323,11 @@ export function FormularioContacto({ pedirAPI }) {
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState(null);
   const [exito, setExito] = useState(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => marcarComoAnimada('vista-contacto'), 180);
+    return () => clearTimeout(timer);
+  }, []);
 
   const manejarCambioArchivo = (e) => {
     const file = e.target.files?.[0] || null;
@@ -370,7 +394,7 @@ export function FormularioContacto({ pedirAPI }) {
   };
 
   return (
-    <div className="animar-entrada max-w-3xl mx-auto px-5 py-12">
+    <div className={`${animarPrimeraVisitaRef.current ? 'animar-entrada ' : ''}max-w-3xl mx-auto px-5 py-12`}>
       <div className="card-proyecto">
         <div className="icon-badge" aria-hidden="true">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -524,12 +548,18 @@ export function FormularioContacto({ pedirAPI }) {
 // 3. MÓDULO DE AUTENTICACIÓN
 // =====================================================================
 export function ModuloAuth({ pedirAPI, onAutenticado, tituloPersonalizado }) {
+  const animarPrimeraVisitaRef = useRef(!yaFueAnimada('vista-login'));
   const [modo, setModo] = useState('login'); // 'login' | 'registro'
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [enviando, setEnviando] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => marcarComoAnimada('vista-login'), 180);
+    return () => clearTimeout(timer);
+  }, []);
 
   const manejarSubmit = async (e) => {
     e.preventDefault();
@@ -594,7 +624,7 @@ export function ModuloAuth({ pedirAPI, onAutenticado, tituloPersonalizado }) {
   };
 
   return (
-    <div className="animar-entrada max-w-md mx-auto px-5 py-14">
+    <div className={`${animarPrimeraVisitaRef.current ? 'animar-entrada ' : ''}max-w-md mx-auto px-5 py-14`}>
       <div className="card-proyecto">
         <div className="icon-badge" aria-hidden="true">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -760,47 +790,53 @@ export function SeccionProyectosProtegida({ usuarioActual, onAutenticado, pedirA
       .finally(() => setCargando(false));
   }, [usuarioActual, pedirAPI]);
 
-  // Orquestación en cascada (anime.timeline + anime.stagger) cuando cargan Proyectos y Demos
+  // Orquestación en cascada una sola vez cuando terminan de cargar Proyectos y Demos
   useLayoutEffect(() => {
-    if (!usuarioActual) return;
+    if (!usuarioActual || cargando || yaFueAnimada('vista-repos-catalogo')) {
+      return undefined;
+    }
     const scope = catalogoRef.current;
-    if (!scope) return;
+    if (!scope) return undefined;
 
     const tl = anime.timeline({
-      easing: 'spring(1, 80, 10, 0)',
-      duration: 950,
+      easing: 'cubicBezier(0.22, 1, 0.36, 1)',
+      duration: 560,
       root: scope
     });
 
     tl.add({
       targets: '.sesion-banner',
-      translateY: [-24, 0],
-      scale: [0.98, 1],
+      translateY: [-10, 0],
       opacity: [0, 1]
     })
       .add(
         {
           targets: '.proyecto-db-card',
-          translateY: [48, 0],
-          scale: [0.92, 1],
+          translateY: [18, 0],
           opacity: [0, 1],
-          delay: anime.stagger(95)
+          delay: anime.stagger(55)
         },
-        '-=720'
+        '-=420'
       )
       .add(
         {
           targets: '.demo-db-card',
-          translateY: [44, 0],
-          scale: [0.93, 1],
+          translateY: [18, 0],
           opacity: [0, 1],
-          delay: anime.stagger(105)
+          delay: anime.stagger(55)
         },
-        '-=680'
+        '-=380'
       );
 
-    return () => tl.revert();
-  }, [usuarioActual, cargando, proyectosDB.length, demosDB.length]);
+    const timerMarca = setTimeout(() => {
+      marcarComoAnimada('vista-repos-catalogo');
+    }, 180);
+
+    return () => {
+      clearTimeout(timerMarca);
+      tl.revert();
+    };
+  }, [usuarioActual, cargando]);
 
   if (!usuarioActual) {
     return (
