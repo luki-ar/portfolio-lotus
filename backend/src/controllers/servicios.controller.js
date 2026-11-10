@@ -1,0 +1,50 @@
+// Capa de lógica de negocio para "servicios" (Servicios ofertados).
+const servicioModel = require('../models/servicio.model');
+const { HttpError, parseId, asyncHandler } = require('../utils/http');
+
+// GET /api/servicios
+const listar = asyncHandler(async (req, res) => {
+  res.json(await servicioModel.findAll());
+});
+
+// POST /api/servicios
+const crear = asyncHandler(async (req, res) => {
+  const { nombre, descripcion, categoria, precio_desde } = req.body || {};
+
+  if (typeof nombre !== 'string' || nombre.trim() === '') {
+    throw new HttpError(400, 'El nombre del servicio es obligatorio');
+  }
+  if (typeof descripcion !== 'string' || descripcion.trim() === '') {
+    throw new HttpError(400, 'La descripción del servicio es obligatoria');
+  }
+
+  const precio = precio_desde !== undefined && precio_desde !== '' ? Number(precio_desde) : 0;
+  if (Number.isNaN(precio) || precio < 0) {
+    throw new HttpError(400, 'El precio base debe ser un número mayor o igual a 0');
+  }
+
+  const servicio = await servicioModel.create({
+    nombre: nombre.trim(),
+    descripcion: descripcion.trim(),
+    categoria: typeof categoria === 'string' && categoria.trim() ? categoria.trim() : 'Desarrollo Web',
+    precio_desde: precio,
+  });
+
+  res.status(201).json(servicio);
+});
+
+// PATCH /api/servicios/:id/estado
+const cambiarEstado = asyncHandler(async (req, res) => {
+  const actualizado = await servicioModel.toggleActivo(parseId(req.params.id));
+  if (!actualizado) throw new HttpError(404, 'Servicio no encontrado');
+  res.json(actualizado);
+});
+
+// DELETE /api/servicios/:id
+const eliminar = asyncHandler(async (req, res) => {
+  const borrado = await servicioModel.remove(parseId(req.params.id));
+  if (!borrado) throw new HttpError(404, 'Servicio no encontrado');
+  res.status(204).end();
+});
+
+module.exports = { listar, crear, cambiarEstado, eliminar };

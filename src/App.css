@@ -1,38 +1,729 @@
-.App {
-  text-align: center;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-.App-logo {
-  height: 40vmin;
+:root {
+  --bg-dark: #050508;
+  --surface-1: rgba(16, 18, 28, 0.74);
+  --surface-2: rgba(24, 27, 42, 0.86);
+  --card-bg: rgba(18, 19, 28, 0.72);
+  --card-bg-hover: rgba(24, 26, 38, 0.85);
+  --text-main: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --accent-1: #6366f1;
+  --accent-2: #ec4899;
+  --accent-3: #3b82f6;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-highlight: rgba(99, 102, 241, 0.52);
+  --radius-card: 22px;
+  --radius-control: 12px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(99, 102, 241, 0.16), transparent 34%),
+    radial-gradient(circle at 88% 22%, rgba(236, 72, 153, 0.14), transparent 34%),
+    radial-gradient(circle at 50% 88%, rgba(59, 130, 246, 0.11), transparent 40%);
+  background-attachment: fixed;
+  overflow-x: hidden;
+}
+
+/* =====================================================================
+   WATERMARK DE FLOR DE LOTO (Identidad Visual "Obsidian Botanical")
+   ===================================================================== */
+.lotus-watermark-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lotus-watermark-svg {
+  width: min(82vw, 760px);
+  height: min(82vw, 760px);
+  opacity: 0.055;
+  filter: drop-shadow(0 0 40px rgba(236, 72, 153, 0.25));
+  transform: translateY(4%);
+  transition: opacity 0.5s ease;
+}
+
+.app-shell {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, #60a5fa 0%, #818cf8 45%, #f472b6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animar-entrada {
+  animation: fadeInUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* =====================================================================
+   NAVEGACIÓN GLASSMORPHISM RESPONSIVA (PC & Móvil)
+   ===================================================================== */
+.navbar {
+  background: rgba(7, 8, 14, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 14px 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 30px -15px rgba(0, 0, 0, 0.75);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar-brand {
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: #ffffff;
+  text-decoration: none;
+  letter-spacing: -0.6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navbar-lotus-emblem {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.22), rgba(236, 72, 153, 0.2));
+  border: 1px solid rgba(236, 72, 153, 0.38);
+  box-shadow: 0 0 18px rgba(236, 72, 153, 0.25);
+  color: #f472b6;
+  flex-shrink: 0;
+}
+
+.nav-mobile-toggle {
+  display: none;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 11px;
+  padding: 8px 10px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.nav-mobile-toggle:hover {
+  background: rgba(99, 102, 241, 0.16);
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.nav-links {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.nav-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.87rem;
+  padding: 8px 14px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: all 0.22s ease;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.nav-link:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.nav-link-activo {
+  color: #ffffff;
+  background: rgba(99, 102, 241, 0.16);
+  border-color: rgba(99, 102, 241, 0.38);
+  box-shadow: 0 4px 16px -4px rgba(99, 102, 241, 0.35);
+}
+
+.nav-auth-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 6px;
+}
+
+/* =====================================================================
+   HERO SECTION & LAYOUT CONTAINERS
+   ===================================================================== */
+.hero-section {
+  position: relative;
+  text-align: center;
+  padding: clamp(56px, 9vw, 100px) 20px clamp(44px, 6vw, 68px);
+  max-width: 940px;
+  margin: 0 auto;
+}
+
+.hero-lotus-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(236, 72, 153, 0.12));
+  border: 1px solid rgba(236, 72, 153, 0.32);
+  color: #f9a8d4;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  box-shadow: 0 8px 24px -6px rgba(236, 72, 153, 0.25);
+}
+
+.hero-title {
+  font-size: clamp(2.15rem, 5vw, 3.65rem);
+  font-weight: 800;
+  line-height: 1.14;
+  margin-bottom: 18px;
+  letter-spacing: -1.2px;
+}
+
+.hero-subtitle {
+  font-size: clamp(0.96rem, 2vw, 1.08rem);
+  color: var(--text-muted);
+  font-weight: 400;
+  max-width: 650px;
+  margin: 0 auto 32px;
+  line-height: 1.75;
+}
+
+.seccion-contenedor {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 0 20px 64px;
+}
+
+/* =====================================================================
+   TARJETAS (Cards de Proyectos, Demos, Servicios y Paneles)
+   ===================================================================== */
+.grid-proyectos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 24px;
+  padding: 12px 0;
+}
+
+.grid-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: 24px;
+  padding: 12px 0;
+}
+
+.card-proyecto {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(160deg, rgba(26, 28, 42, 0.78) 0%, rgba(12, 14, 24, 0.84) 100%);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-card);
+  padding: 28px;
+  box-shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  translate: 0 0;
+  will-change: transform, translate, opacity;
+  backface-visibility: hidden;
+  transition:
+    translate 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.28s ease,
+    box-shadow 0.28s ease;
+}
+
+/* Reflejo especular superior sutil (Obsidian Botanical Luxury) */
+.card-proyecto::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(99, 102, 241, 0.45),
+    rgba(236, 72, 153, 0.45),
+    transparent
+  );
+  opacity: 0.55;
   pointer-events: none;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.card-proyecto:hover {
+  translate: 0 -6px;
+  border-color: rgba(99, 102, 241, 0.55);
+  box-shadow:
+    0 24px 48px -12px rgba(99, 102, 241, 0.26),
+    0 0 24px rgba(236, 72, 153, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+.card-proyecto .icon-badge {
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.28s ease,
+    box-shadow 0.28s ease;
+}
+
+.card-proyecto:hover .icon-badge {
+  transform: scale(1.08) rotate(-4deg);
+  border-color: rgba(99, 102, 241, 0.55);
+}
+
+/* Capa de aceleración por hardware GPU para elementos orquestados con Anime.js */
+.gpu-accelerated,
+.hero-elemento,
+.kpi-card,
+.icon-badge {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.card-proyecto h3 {
+  font-size: 1.24rem;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #f8fafc;
+  letter-spacing: -0.3px;
+}
+
+.card-proyecto p {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.65;
+  margin-bottom: 18px;
+}
+
+.icon-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(59, 130, 246, 0.12));
+  border: 1px solid rgba(99, 102, 241, 0.32);
+  color: #818cf8;
+  margin-bottom: 16px;
+  flex-shrink: 0;
 }
 
-.App-link {
-  color: #61dafb;
+/* =====================================================================
+   CHIPS / ETIQUETAS (Tags)
+   ===================================================================== */
+.tag-tecnologia {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  margin-right: 8px;
+  margin-bottom: 10px;
+  letter-spacing: 0.1px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* =====================================================================
+   BOTONES Y ESTADOS INTERACTIVOS (WCAG 2.2 Focus Visible)
+   ===================================================================== */
+.btn-primario {
+  background: linear-gradient(135deg, var(--accent-1) 0%, var(--accent-3) 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 12px 26px;
+  border-radius: 14px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: all 0.22s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 8px 20px -6px rgba(99, 102, 241, 0.45);
+}
+
+.btn-primario:hover:not(:disabled) {
+  box-shadow: 0 12px 28px -6px rgba(99, 102, 241, 0.65);
+  transform: translateY(-2px);
+}
+
+.btn-primario:disabled,
+.btn-secundario-outline:disabled,
+.btn-peligro-outline:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secundario-outline {
+  background: rgba(99, 102, 241, 0.08);
+  color: #e2e8f0;
+  border: 1px solid rgba(99, 102, 241, 0.38);
+  padding: 8px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-secundario-outline:hover:not(:disabled) {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: var(--accent-1);
+  color: #ffffff;
+}
+
+.btn-peligro-outline {
+  background: rgba(239, 68, 68, 0.08);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  padding: 8px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-peligro-outline:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: #ef4444;
+  color: #fecaca;
+}
+
+/* =====================================================================
+   FORMULARIOS Y LABELS ACCESIBLES
+   ===================================================================== */
+.label-form {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #cbd5e1;
+  margin-bottom: 6px;
+  letter-spacing: 0.2px;
+}
+
+.input-form {
+  width: 100%;
+  padding: 13px 16px;
+  margin-bottom: 18px;
+  border-radius: var(--radius-control);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background-color: rgba(8, 10, 18, 0.68);
+  color: #f8fafc;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.92rem;
+  transition: border-color 0.22s ease, box-shadow 0.22s ease, background-color 0.22s ease;
+}
+
+.input-form::placeholder {
+  color: #64748b;
+}
+
+.input-form:focus {
+  outline: none;
+  border-color: var(--accent-1);
+  background-color: rgba(12, 15, 28, 0.9);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.22);
+}
+
+.input-form option {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
+/* Anillo de foco visible para navegación por teclado (WCAG 2.2) */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent-1);
+  outline-offset: 2px;
+}
+
+/* =====================================================================
+   PANEL ADMINISTRATIVO, PESTAÑAS, KPIS Y TABLAS
+   ===================================================================== */
+.cargando-api {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  background: rgba(18, 19, 28, 0.45);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+}
+
+.admin-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 32px;
+  padding: 8px;
+  background: rgba(12, 14, 22, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+}
+
+.admin-tab {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  padding: 10px 18px;
+  border-radius: 11px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.86rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.22s ease;
+  white-space: nowrap;
+}
+
+.admin-tab:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.admin-tab-activo {
+  background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 6px 20px -4px rgba(99, 102, 241, 0.45);
+}
+
+.grid-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+  gap: 22px;
+}
+
+.kpi-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  text-align: center;
+}
+
+.kpi-label {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kpi-valor {
+  font-size: clamp(2.1rem, 4vw, 2.6rem);
+  font-weight: 800;
+  line-height: 1.15;
+  margin-top: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.tabla-admin {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  min-width: 640px;
+}
+
+.tabla-admin th,
+.tabla-admin td {
+  padding: 15px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.88rem;
+  vertical-align: middle;
+}
+
+.tabla-admin tbody tr {
+  transition: background-color 0.18s ease;
+}
+
+.tabla-admin tbody tr:hover {
+  background-color: rgba(99, 102, 241, 0.06);
+}
+
+.tabla-admin th {
+  color: #cbd5e1;
+  font-weight: 600;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* =====================================================================
+   FOOTER INSTITUCIONAL LOTUS
+   ===================================================================== */
+.footer-lotus {
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  background: rgba(6, 7, 12, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding: 28px 5%;
+}
+
+/* =====================================================================
+   RESPONSIVIDAD MÓVIL Y TABLET (PC / Móvil Breakpoints)
+   ===================================================================== */
+@media (max-width: 900px) {
+  .nav-mobile-toggle {
+    display: inline-flex;
   }
-  to {
-    transform: rotate(360deg);
+
+  .nav-links {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    padding-top: 12px;
+    margin-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .nav-links.nav-links-abierto {
+    display: flex;
+  }
+
+  .nav-link {
+    width: 100%;
+    padding: 11px 14px;
+    font-size: 0.92rem;
+  }
+
+  .nav-auth-box {
+    margin-left: 0;
+    margin-top: 6px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .card-proyecto {
+    padding: 20px;
+    border-radius: 18px;
+  }
+
+  .admin-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .admin-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .btn-primario,
+  .btn-secundario-outline {
+    justify-content: center;
+  }
+}
+
+/* Respeto por accesibilidad de movimiento reducido (WCAG / Apple HIG) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
