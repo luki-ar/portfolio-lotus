@@ -250,7 +250,7 @@ export default function ProyectosAPI() {
   if (cargando) {
     return (
       <div className="cargando-api">
-        Sincronizando repositorios en vivo desde GitHub API...
+        Sincronizando repositorios...
       </div>
     );
   }
@@ -286,7 +286,7 @@ export default function ProyectosAPI() {
             {etiquetaOrigen}
           </span>
           <h2 className="text-2xl font-bold text-slate-100 mt-1">
-            Repositorios en Tiempo Real
+            Repositorios
           </h2>
         </div>
 

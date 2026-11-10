@@ -366,11 +366,11 @@ function Inicio() {
   );
 }
 
-// URL base del backend. Se puede sobrescribir con REACT_APP_API_URL en un archivo .env
+
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000/api';
 const ESTADOS = ['Nuevo Avance', 'En proceso', 'Deployado'];
 
-// Helper: hace la petición y lanza un Error con el mensaje que devuelve la API si falla.
+
 async function pedirAPI(ruta, opciones = {}) {
   let respuesta;
   try {
@@ -429,7 +429,7 @@ function GestionProyectos({ seccionInicial = 'proyectos' }) {
     setArchivoPortada(null);
   };
 
-  // READ: al montar el componente se piden los proyectos al backend (GET).
+  // READ: --(GET).
   useEffect(() => {
     const cargarProyectos = async () => {
       try {
@@ -445,7 +445,7 @@ function GestionProyectos({ seccionInicial = 'proyectos' }) {
     cargarProyectos();
   }, []);
 
-  // CREATE / UPDATE: valida con Zod + archivo opcional, envía al backend (POST o PUT) y actualiza la lista.
+
   const agregarProyecto = async (e) => {
     e.preventDefault();
     setError(null);
@@ -509,7 +509,7 @@ function GestionProyectos({ seccionInicial = 'proyectos' }) {
     }
   };
 
-  // DELETE: borra en el backend y, solo si salió bien, lo quita de la vista.
+  
   const eliminarProyecto = async (id) => {
     setEliminandoId(id);
     setError(null);
@@ -1025,13 +1025,11 @@ function FooterLotus() {
             </svg>
           </span>
           <span className="font-semibold text-slate-200">LOTUS.</span>
-          <span>• Portfolio Full-Stack Integrador (Lenguajes IV)</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="tag-tecnologia" style={{ marginBottom: 0 }}>React 19 + Tailwind Glass</span>
-          <span className="tag-tecnologia" style={{ marginBottom: 0 }}>GSAP + Lenis + Anime.js</span>
-          <span className="tag-tecnologia" style={{ marginBottom: 0 }}>Node.js + Express</span>
-          <span className="tag-tecnologia" style={{ marginBottom: 0 }}>PostgreSQL / Supabase</span>
+          <span className="tag-tecnologia" style={{ marginBottom: 0 }}>React, Tailwind Glass</span>
+          <span className="tag-tecnologia" style={{ marginBottom: 0 }}>Node.js, Express</span>
+          <span className="tag-tecnologia" style={{ marginBottom: 0 }}>PostgreSQL, Supabase</span>
         </div>
       </div>
     </footer>

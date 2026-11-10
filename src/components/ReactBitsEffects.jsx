@@ -167,10 +167,10 @@ export function GlassmorphismPortfolioBlock({ LinkComponent = 'a' }) {
 
               <div className="space-y-3">
                 <h2 className="text-2xl font-bold tracking-tight text-white md:text-3xl">
-                  LOTUS Studio — Ingeniería Full-Stack &amp; Dirección de Movimiento
+                  LOTUS. — Ingeniería Full-Stack &amp; Dirección de Movimiento
                 </h2>
                 <p className="text-sm leading-relaxed text-slate-300 md:text-base" style={{ marginBottom: 0 }}>
-                  Plataforma integral diseñada bajo estética <strong className="text-white">Obsidian Botanical Glassmorphism</strong>, fusionando coreografías cinéticas de interfaz con persistencia transaccional y APIs RESTful en la nube.
+                  Portfolio diseñado con <strong className="text-white">Obsidian Botanical Glassmorphism.</strong> fusionando persistencia transaccional y APIs RESTful en la nube.
                 </p>
               </div>
 
@@ -210,7 +210,7 @@ export function GlassmorphismPortfolioBlock({ LinkComponent = 'a' }) {
                 '/repositorios',
                 'btn-primario inline-flex items-center justify-center gap-2 rounded-full px-7 py-3 text-xs uppercase tracking-[0.2em]',
                 <>
-                  <span>Explorar Casos &amp; Demos</span>
+                  <span>Casos &amp; Demos</span>
                   <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <line x1="7" y1="17" x2="17" y2="7" />
                     <polyline points="7 7 17 7 17 17" />
@@ -228,7 +228,7 @@ export function GlassmorphismPortfolioBlock({ LinkComponent = 'a' }) {
             />
             <div className="relative flex h-full flex-col justify-between overflow-hidden rounded-[26px] border border-white/15 bg-slate-950/65 p-6 md:p-8 backdrop-blur-xl">
               <div className="flex flex-col items-center text-center">
-                {/* Emblema / Avatar con halo luminoso */}
+                {/* Emblema de Avatar con halo luminoso */}
                 <div className="relative mb-5">
                   <div
                     className="pointer-events-none absolute left-1/2 top-1/2 h-28 w-28 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/30 blur-2xl"
@@ -255,23 +255,17 @@ export function GlassmorphismPortfolioBlock({ LinkComponent = 'a' }) {
                   <h3 className="text-xl font-bold tracking-tight text-white" style={{ marginBottom: '2px' }}>
                     LOTUS. Engineering Team
                   </h3>
-                  <p
-                    className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-300/80"
-                    style={{ marginBottom: 0 }}
-                  >
-                    Lenguajes IV · Promoción Directa 2026
-                  </p>
                 </div>
 
                 <p
                   className="mt-3 max-w-sm text-xs md:text-sm leading-relaxed text-slate-300"
                   style={{ marginBottom: 0 }}
                 >
-                  Lucas Colque, Mauricio Navarro, Gabriel Vargas y Pilar Alvarado diseñando interfaces veloces y conectadas en tiempo real.
+                  Alvarado Pilar, Colque Lucas, Vargas Gabriel y Navarro Mauricio son los encargados de construir tu propia experiencia digital increible. Diseñando interfaces veloces y conectadas en tiempo real.
                 </p>
               </div>
 
-              {/* Tarjetas de enlaces rápidos e inspección */}
+
               <div className="mt-6 flex flex-col gap-2.5">
                 {ENLACES_LOTUS.map((item) => {
                   const innerContent = (
@@ -332,8 +326,8 @@ export function GlassmorphismPortfolioBlock({ LinkComponent = 'a' }) {
 }
 
 /**
- * React Bits — SpotlightCard (Delegación Global)
- * Inyecta las coordenadas `--mouse-x` y `--mouse-y` en tiempo real sobre cualquier
+ * React Bits — SpotlightCard
+ * `--mouse-x` y `--mouse-y` en tiempo real sobre cualquier
  * tarjeta `.card-proyecto` bajo el cursor para proyectar refracción especular interactiva.
  */
 export function useGlobalCardSpotlight() {

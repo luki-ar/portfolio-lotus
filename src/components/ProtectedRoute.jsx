@@ -80,15 +80,14 @@ export default function ProtectedRoute({
             style={{ color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.35)', background: 'rgba(239, 68, 68, 0.1)' }}
           >
             <span className="status-dot" style={{ background: '#ef4444' }} />
-            Código 403 • Acceso Denegado por Rol
+            Acceso Denegado
           </span>
           <h2 className="text-2xl font-bold mt-2 mb-3 tracking-tight text-white">
             Sección Exclusiva para Administradores
           </h2>
           <p className="text-sm text-gray-300 mb-6 leading-relaxed">
-            Has iniciado sesión como <strong className="text-white">{usuarioActual.nombre}</strong> con el rol{' '}
-            <strong style={{ color: '#38bdf8' }}>{usuarioActual.rol}</strong>. Tu cuenta tiene
-            permiso para explorar el catálogo de <strong className="text-white">Proyectos y Demos</strong>, pero no
+            Tu cuenta tiene
+            no tiene los permisos adecuados para acceder a esta sección. Tu cuenta tiene permiso para explorar el catálogo de <strong className="text-white">Proyectos y Demos</strong>, pero no
             para acceder al Panel de Gestión CRUD ni al Dashboard de Métricas.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
@@ -101,7 +100,7 @@ export default function ProtectedRoute({
               className="btn-secundario-outline"
               style={{ padding: '12px 22px', fontSize: '0.9rem' }}
             >
-              Cambiar a Cuenta Administrador
+              Cerrar Sesión
             </button>
           </div>
         </div>

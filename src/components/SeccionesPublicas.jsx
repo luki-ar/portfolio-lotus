@@ -141,7 +141,7 @@ export function PresentacionProfesional({ pedirAPI }) {
               <path d="M12 19C7.5 15.5 5 11 6 6.5C9 8.5 11 12.5 12 19Z" />
               <path d="M12 19C16.5 15.5 19 11 18 6.5C15 8.5 13 12.5 12 19Z" />
             </svg>
-            <ShinyText speed={4.2}>Presentación Profesional • Ingeniería Full-Stack</ShinyText>
+            <ShinyText speed={4.2}>Presentación Profesional</ShinyText>
           </span>
         </div>
         <h1
@@ -154,9 +154,7 @@ export function PresentacionProfesional({ pedirAPI }) {
           className="perfil-hero-item text-gray-300 leading-relaxed mb-6 max-w-3xl"
           style={{ willChange: 'transform, opacity' }}
         >
-          Desarrolladores Full-Stack especializados en la construcción de aplicaciones web modernas bajo
-          <strong className="text-white"> arquitectura en 3 capas</strong> (Presentación en React + Tailwind CSS, Lógica de Negocio en
-          Node.js/Express y Persistencia Relacional en PostgreSQL/Supabase). Nuestro enfoque combina diseño UI/UX de
+          Team Developers Full-Stack especializados en la construcción de aplicaciones web modernas. Nuestro enfoque combina <strong className="text-white">Diseño UI/UX</strong> de
           alto impacto con bases de datos íntegras, seguras y escalables.
         </p>
         <div
@@ -383,8 +381,7 @@ export function FormularioContacto({ pedirAPI }) {
         <span className="tag-tecnologia">Contacto Directo &amp; Presupuestos</span>
         <h1 className="text-3xl font-bold mb-2 tracking-tight text-white">Formulario de Contacto</h1>
         <p className="mb-6">
-          Enviá tu consulta, solicitud de cotización o pedido de asesoría técnica. Todos los campos cuentan con
-          validación estricta y notificación vía correo electrónico.
+          Enviá tu consulta, solicitud de cotización o pedido de asesoría técnica y te responderemos a la brevedad.
         </p>
 
         {error && (
@@ -419,11 +416,11 @@ export function FormularioContacto({ pedirAPI }) {
         <form onSubmit={enviarFormulario} noValidate>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="contacto-nombre" className="label-form">Nombre completo *</label>
+              <label htmlFor="contacto-nombre" className="label-form">Nombre y apellido</label>
               <input
                 id="contacto-nombre"
                 type="text"
-                placeholder="Ej. Sofía Méndez"
+                placeholder="Ej. Eugenia Loto"
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
                 className="input-form"
@@ -431,7 +428,7 @@ export function FormularioContacto({ pedirAPI }) {
               />
             </div>
             <div>
-              <label htmlFor="contacto-email" className="label-form">Correo electrónico *</label>
+              <label htmlFor="contacto-email" className="label-form">Correo</label>
               <input
                 id="contacto-email"
                 type="email"
@@ -446,7 +443,7 @@ export function FormularioContacto({ pedirAPI }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="contacto-motivo" className="label-form">Motivo de contacto *</label>
+              <label htmlFor="contacto-motivo" className="label-form">Motivo</label>
               <select
                 id="contacto-motivo"
                 value={tipoConsulta}
@@ -460,7 +457,7 @@ export function FormularioContacto({ pedirAPI }) {
               </select>
             </div>
             <div>
-              <label htmlFor="contacto-asunto" className="label-form">Asunto (mín. 5 caracteres) *</label>
+              <label htmlFor="contacto-asunto" className="label-form">Asunto (mín. 5 caracteres)</label>
               <input
                 id="contacto-asunto"
                 type="text"
@@ -475,12 +472,12 @@ export function FormularioContacto({ pedirAPI }) {
 
           <div>
             <label htmlFor="contacto-mensaje" className="label-form">
-              Detalle de la consulta o requerimiento (mín. 15 caracteres) *
+              Descripción (mín. 15 caracteres)
             </label>
             <textarea
               id="contacto-mensaje"
               rows={4}
-              placeholder="Describí los objetivos del proyecto, plazos estimados o dudas técnicas..."
+              placeholder="Describí los objetivos de tu consulta aqui."
               value={mensaje}
               onChange={(e) => setMensaje(e.target.value)}
               className="input-form"
@@ -491,7 +488,7 @@ export function FormularioContacto({ pedirAPI }) {
 
           <div className="mb-5">
             <label htmlFor="contacto-archivo" className="label-form">
-              Adjuntar especificación o captura (Opcional: .pdf, .png, .jpg, .webp, .doc, .docx — máx. 5 MB)
+              Adjuntar especificación o captura (Archivos: .pdf, .png, .jpg, .webp, .doc, .docx — máx. 5 MB)
             </label>
             <input
               id="contacto-archivo"
@@ -524,7 +521,7 @@ export function FormularioContacto({ pedirAPI }) {
 }
 
 // =====================================================================
-// 3. MÓDULO DE AUTENTICACIÓN (Login y Registro con Validación Estricta Zod)
+// 3. MÓDULO DE AUTENTICACIÓN
 // =====================================================================
 export function ModuloAuth({ pedirAPI, onAutenticado, tituloPersonalizado }) {
   const [modo, setModo] = useState('login'); // 'login' | 'registro'
@@ -607,7 +604,7 @@ export function ModuloAuth({ pedirAPI, onAutenticado, tituloPersonalizado }) {
         </div>
         <span className="tag-tecnologia" style={{ color: '#f472b6', borderColor: 'rgba(236, 72, 153, 0.35)' }}>
           <span className="status-dot" style={{ background: '#ec4899' }} />
-          Acceso Protegido • Usuarios Registrados
+          Acceso Exclusivo para Usuarios Registrados
         </span>
         <h2 className="text-2xl font-bold mb-2 tracking-tight text-white">
           {tituloPersonalizado || (modo === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta de Visitante')}
@@ -661,7 +658,7 @@ export function ModuloAuth({ pedirAPI, onAutenticado, tituloPersonalizado }) {
         <form onSubmit={manejarSubmit} noValidate>
           {modo === 'registro' && (
             <div>
-              <label htmlFor="auth-nombre" className="label-form">Nombre y Apellido *</label>
+              <label htmlFor="auth-nombre" className="label-form">Nombre y apellido *</label>
               <input
                 id="auth-nombre"
                 type="text"
@@ -675,7 +672,7 @@ export function ModuloAuth({ pedirAPI, onAutenticado, tituloPersonalizado }) {
           )}
 
           <div>
-            <label htmlFor="auth-email" className="label-form">Correo electrónico *</label>
+            <label htmlFor="auth-email" className="label-form">Correo electrónico</label>
             <input
               id="auth-email"
               type="email"
@@ -713,7 +710,7 @@ export function ModuloAuth({ pedirAPI, onAutenticado, tituloPersonalizado }) {
 
         <div className="mt-6 pt-5 border-t border-white/10 text-center">
           <p className="text-xs text-gray-400 mb-3 font-medium">
-            Simulación rápida de Roles para Evaluación del TP:
+            'Simulacion de roles'
           </p>
           <div className="grid grid-cols-1 gap-2.5">
             <button
@@ -723,7 +720,7 @@ export function ModuloAuth({ pedirAPI, onAutenticado, tituloPersonalizado }) {
               className="btn-secundario-outline w-full"
             >
               <span className="status-dot" style={{ background: '#38bdf8' }} />
-              <span>Ingresar como Rol Cliente (Sofía Méndez)</span>
+              <span>Ingresar como cliente</span>
             </button>
             <button
               type="button"
@@ -733,7 +730,7 @@ export function ModuloAuth({ pedirAPI, onAutenticado, tituloPersonalizado }) {
               style={{ borderColor: 'rgba(236, 72, 153, 0.45)', color: '#f9a8d4' }}
             >
               <span className="status-dot" style={{ background: '#ec4899' }} />
-              <span>Ingresar como Rol Administrador (Lucas Colque)</span>
+              <span>Ingresar como administrador</span>
             </button>
           </div>
         </div>
