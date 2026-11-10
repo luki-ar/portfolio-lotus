@@ -5,6 +5,7 @@ const router = Router();
 
 router.get('/', controller.listar);
 router.post('/', controller.crear);
+router.post('/:id/responder', controller.responder);
 router.patch('/:id/respondido', controller.marcarRespondido);
 router.delete('/:id', controller.eliminar);
 

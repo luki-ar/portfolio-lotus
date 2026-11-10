@@ -37,9 +37,23 @@ async function toggleActivo(id) {
   return rows[0] || null;
 }
 
+async function update(id, { nombre, descripcion, categoria, precio_desde }) {
+  const { rows } = await pool.query(
+    `UPDATE servicios
+     SET nombre = $2,
+         descripcion = $3,
+         categoria = $4,
+         precio_desde = $5
+     WHERE id = $1
+     RETURNING id, nombre, descripcion, categoria, precio_desde::float AS precio_desde, activo, creado_en`,
+    [id, nombre, descripcion, categoria, precio_desde]
+  );
+  return rows[0] || null;
+}
+
 async function remove(id) {
   const { rowCount } = await pool.query('DELETE FROM servicios WHERE id = $1', [id]);
   return rowCount > 0;
 }
 
-module.exports = { findAll, create, toggleActivo, remove };
+module.exports = { findAll, create, update, toggleActivo, remove };

@@ -34,9 +34,9 @@ const obtener = asyncHandler(async (req, res) => {
   res.json(proyecto);
 });
 
-// POST /api/proyectos
-const crear = asyncHandler(async (req, res) => {
-  const { titulo, descripcion, estado, tecnologias: tecnologiasEntrada } = req.body || {};
+/** Valida el cuerpo de alta/edición y devuelve los datos normalizados. */
+function validarProyecto(body) {
+  const { titulo, descripcion, estado, tecnologias: tecnologiasEntrada } = body || {};
 
   if (typeof titulo !== 'string' || titulo.trim() === '') {
     throw new HttpError(400, 'El título es obligatorio');
@@ -56,14 +56,32 @@ const crear = asyncHandler(async (req, res) => {
     throw new HttpError(400, 'Cada tecnología puede tener como máximo 50 caracteres');
   }
 
-  const proyecto = await proyectoModel.create({
+  return {
     titulo: titulo.trim(),
-    descripcion: typeof descripcion === 'string' ? descripcion.trim() : null,
+    descripcion: typeof descripcion === 'string' ? descripcion.trim() : undefined,
     estado,
     tecnologias,
+  };
+}
+
+// POST /api/proyectos
+const crear = asyncHandler(async (req, res) => {
+  const datos = validarProyecto(req.body);
+  const proyecto = await proyectoModel.create({
+    ...datos,
+    descripcion: datos.descripcion ?? null,
   });
 
   res.status(201).location(`/api/proyectos/${proyecto.id}`).json(proyecto);
+});
+
+// PUT /api/proyectos/:id
+const actualizar = asyncHandler(async (req, res) => {
+  const id = parseId(req.params.id);
+  const datos = validarProyecto(req.body);
+  const proyecto = await proyectoModel.update(id, datos);
+  if (!proyecto) throw new HttpError(404, 'Proyecto no encontrado');
+  res.json(proyecto);
 });
 
 // DELETE /api/proyectos/:id
@@ -73,4 +91,4 @@ const eliminar = asyncHandler(async (req, res) => {
   res.status(204).end();
 });
 
-module.exports = { listar, obtener, crear, eliminar };
+module.exports = { listar, obtener, crear, actualizar, eliminar };

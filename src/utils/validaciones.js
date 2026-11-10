@@ -172,6 +172,14 @@ export const usuarioAdminSchema = z.object({
   rol: z.enum(['Cliente', 'Colaborador', 'Administrador'])
 });
 
+export const respuestaContactoSchema = z.object({
+  respuesta: z
+    .string()
+    .trim()
+    .min(10, 'La respuesta debe contener al menos 10 caracteres')
+    .max(2000, 'La respuesta no puede superar los 2000 caracteres')
+});
+
 /**
  * Ejecuta un esquema de Zod y devuelve { ok: true, datos } o { ok: false, error }.
  */

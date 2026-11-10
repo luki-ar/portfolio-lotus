@@ -33,9 +33,23 @@ async function create({ titulo, descripcion, url_demo, proyecto_id }) {
   return findById(rows[0].id);
 }
 
+async function update(id, { titulo, descripcion, url_demo, proyecto_id }) {
+  const { rows } = await pool.query(
+    `UPDATE demos
+     SET titulo = $2,
+         descripcion = $3,
+         url_demo = $4,
+         proyecto_id = $5
+     WHERE id = $1
+     RETURNING id`,
+    [id, titulo, descripcion || null, url_demo, proyecto_id || null]
+  );
+  return rows[0] ? findById(rows[0].id) : null;
+}
+
 async function remove(id) {
   const { rowCount } = await pool.query('DELETE FROM demos WHERE id = $1', [id]);
   return rowCount > 0;
 }
 
-module.exports = { findAll, findById, create, remove };
+module.exports = { findAll, findById, create, update, remove };

@@ -251,6 +251,9 @@ CREATE TABLE IF NOT EXISTS contactos (
 
 ALTER TABLE contactos ENABLE ROW LEVEL SECURITY;
 
+-- Migración idempotente: texto de la respuesta enviada por el Administrador vía Nodemailer
+ALTER TABLE contactos ADD COLUMN IF NOT EXISTS respuesta TEXT;
+
 INSERT INTO contactos (nombre, email, tipo_consulta, asunto, mensaje, respondido)
 SELECT v.nombre, v.email, v.tipo_consulta, v.asunto, v.mensaje, v.respondido
 FROM (VALUES

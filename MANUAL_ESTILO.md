@@ -109,10 +109,16 @@ La paleta cromática está definida mediante variables CSS globales (`:root` en 
    - **Barra de 6 Pestañas (`.admin-tabs`):** *Proyectos*, *Demos*, *Servicios Ofertados*, *Usuarios Registrados*, *Gestión de Contactos* y *Dashboard & Métricas*.
    - **Dashboard Analítico:** Fila superior de 3 tarjetas KPI (`.grid-kpis`), barra de filtros SQL parametrizados (`dias` y `seccion`), y grilla `.grid-charts` con **3 gráficos interactivos Recharts** (*BarChart* diario, *PieChart* de catálogo 3FN y *BarChart* de rendimiento por sección).
 
-### 4.3. Coreografía y Movimiento Cinético (Anime.js + CSS GPU)
+### 4.3. Coreografía y Movimiento Cinético (GSAP + Lenis + Anime.js + React Bits + Glassmorphism)
 
+- **Smooth Scroll Inercial (`lenis`):** El desplazamiento global utiliza interpolación exponencial sincronizada al ticker de `gsap` (`gsap.ticker.add`), logrando fluidez constante en todas las rutas públicas y privadas sin interferir con contenedores de scroll interno (`data-lenis-prevent`).
+- **Scroll Reveal y Parallax (`gsap` + `ScrollTrigger`):** Las secciones, grillas y el bloque `GlassmorphismPortfolioBlock` emergen suavemente al entrar en el viewport (`top 88%`), mientras que el emblema `.lotus-watermark-bg` ejecuta un desplazamiento parallax continuo con rotación sutil.
 - **Orquestación de Entrada (`anime.timeline`):** Al montar cada vista mediante `useLayoutEffect`, una línea de tiempo con física de resorte (`spring(1, 80, 10, 0)`) y `anime.stagger()` revela secuencialmente insignias, títulos y tarjetas.
-- **Micro-interacción Hover sin Colisiones:** Las tarjetas `.card-proyecto:hover` utilizan la propiedad CSS independiente `translate: 0 -6px` con curva `cubic-bezier(0.22, 1, 0.36, 1)` y rotación suave del `.icon-badge` (`scale(1.08) rotate(-4deg)`), operando en un canal separado de `transform` para nunca interferir con Anime.js.
+- **Efectos React Bits & Glassmorphism Multicapa (`src/components/ReactBitsEffects.jsx`):**
+  - **`SpotlightCard` (`useGlobalCardSpotlight`):** Proyecta un halo radial especular (`--mouse-x`, `--mouse-y`) que sigue el puntero en tiempo real sobre cualquier tarjeta `.card-proyecto`.
+  - **`BlurText` & `ShinyText`:** Revelado óptico palabra por palabra en titulares principales y barrido metálico continuo en insignias destacadas.
+  - **`AuroraGlassBackground` & `GlassmorphismPortfolioBlock` (`SKILL1.md`):** Esferas bioluminiscentes ambientales que refractan luz real a través de superficies con `backdrop-filter: blur(22px) saturate(185%)`.
+- **Micro-interacción Hover sin Colisiones:** Las tarjetas `.card-proyecto:hover` utilizan la propiedad CSS independiente `translate: 0 -6px` con curva `cubic-bezier(0.22, 1, 0.36, 1)` y rotación suave del `.icon-badge` (`scale(1.08) rotate(-4deg)`), operando en un canal separado de `transform` para nunca interferir con GSAP ni Anime.js.
 
 ---
 

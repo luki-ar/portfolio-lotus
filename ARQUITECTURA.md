@@ -12,10 +12,10 @@ El sistema **LOTUS.** implementa de forma estricta una **arquitectura en 3 capas
 ```mermaid
 flowchart LR
     subgraph Capa1["1. Capa de Presentación (Frontend SPA)"]
-        UI["React 19 + Tailwind CSS + App.css"]
+        UI["React 19 + Tailwind CSS + Glassmorphism UI"]
         RBAC["AuthContext + ProtectedRoute (RBAC)"]
         ZOD["Validaciones Estrictas (Zod + MIME)"]
-        MOTION["Orquestación Cinética (Anime.js)"]
+        MOTION["GSAP ScrollTrigger + Lenis + Anime.js + React Bits"]
         CHARTS["Analítica Visual (Recharts)"]
     end
 
@@ -51,10 +51,14 @@ flowchart LR
 ### 2.1. Capa de Presentación (Frontend)
 - **React 19 (`react`, `react-dom`):** Arquitectura declarativa basada en componentes funcionales y hooks (`useState`, `useEffect`, `useLayoutEffect`, `useCallback`, `useRef`, `useContext`).
 - **React Router DOM v7:** Enrutamiento SPA sin recarga de página con segregación entre rutas públicas (`/`, `/perfil`, `/contacto`, `/login`), rutas autenticadas (`/repositorios`) y rutas exclusivas de Administrador (`/gestion`, `/contactos-admin`, `/dashboard`).
-- **Tailwind CSS + CSS Custom Properties (`src/App.css`):** Sistema de diseño *Obsidian Botanical Luxury* con glassmorphism, watermark SVG de flor de loto y adaptabilidad Mobile-First.
-- **Zod (`src/utils/validaciones.js`):** Validación rigurosa de esquemas en los **7 formularios** del sistema (textos, regex de nombres, emails, URLs seguras `http/https`, precios numéricos y validación de archivos adjuntos por extensión, tipo MIME y tamaño máximo de 5 MB).
+- **Tailwind CSS + CSS Custom Properties (`src/App.css`):** Sistema de diseño *Obsidian Botanical Luxury* con Multi-Layer Glassmorphism (`backdrop-filter: blur(22px) saturate(185%)`), bloque interactivo `GlassmorphismPortfolioBlock` (`SKILL1.md`), watermark SVG de flor de loto y adaptabilidad Mobile-First.
+- **Zod (`src/utils/validaciones.js`):** Validación rigurosa de esquemas en los **8 formularios** del sistema (Login, Registro, Contacto, Proyectos, Demos, Servicios, Usuarios Admin y Respuesta de Contacto por Email, además de validación de archivos adjuntos por extensión, tipo MIME y tamaño máximo de 5 MB).
 - **Recharts:** Visualización de datos en el Dashboard con 3 gráficos interactivos (*BarChart* diario, *PieChart* de distribución de catálogo 3FN y *BarChart* de rendimiento por sección).
-- **Anime.js (`src/utils/animaciones.js`):** Animaciones de entrada orquestadas en múltiples etapas mediante `anime.timeline()`, curvas físicas `spring(1, 80, 10, 0)` y cascadas `anime.stagger()`.
+- **GSAP + ScrollTrigger, Lenis, Anime.js y React Bits (`src/utils/animaciones.js` y `src/components/ReactBitsEffects.jsx`):**
+  - **Lenis (`lenis`):** Smooth Scroll de inercia exponencial sincronizado con `gsap.ticker`.
+  - **GSAP (`gsap` + `ScrollTrigger`):** Revelado progresivo de secciones en scroll y parallax continuo del emblema de flor de loto.
+  - **Anime.js (`animejs`):** Orquestación de entrada mediante `anime.timeline()`, curvas físicas `spring(1, 80, 10, 0)` y cascadas `anime.stagger()`.
+  - **React Bits:** Efectos interactivos `SpotlightCard` (luz radial que sigue al cursor sobre cada tarjeta), `BlurText`, `ShinyText` y `AuroraGlassBackground`.
 
 ### 2.2. Capa de Lógica de Negocio (Backend)
 - **Node.js + Express 4:** API RESTful estructurada bajo el patrón *Routes → Controllers → Models → Middlewares*.
@@ -154,10 +158,10 @@ erDiagram
 | **Healthcheck** | `GET /api/health` | Verifica conectividad activa entre Express y PostgreSQL (`SELECT 1`). |
 | **Proyectos (N:M)** | `GET /api/proyectos`<br>`POST /api/proyectos`<br>`PUT /api/proyectos/:id`<br>`DELETE /api/proyectos/:id` | Lista proyectos con `json_agg` de tecnologías. El alta y edición ejecutan **transacciones ACID** que insertan/reutilizan tecnologías (`ON CONFLICT DO NOTHING`) y vinculan `proyecto_tecnologia`. |
 | **Tecnologías** | `GET /api/tecnologias`<br>`POST /api/tecnologias`<br>`DELETE /api/tecnologias/:id` | ABM del catálogo de tecnologías con índice único `lower(nombre)`. |
-| **Demos** | `GET /api/demos`<br>`POST /api/demos`<br>`DELETE /api/demos/:id` | Gestión de demos interactivas con `LEFT JOIN` al título del proyecto vinculado. |
-| **Servicios** | `GET /api/servicios`<br>`POST /api/servicios`<br>`PATCH /api/servicios/:id/estado`<br>`DELETE /api/servicios/:id` | Catálogo de prestaciones profesionales con alternancia de disponibilidad (`activo`). |
+| **Demos** | `GET /api/demos`<br>`POST /api/demos`<br>`PUT /api/demos/:id`<br>`DELETE /api/demos/:id` | CRUD completo de demos interactivas con `LEFT JOIN` al título del proyecto vinculado. |
+| **Servicios** | `GET /api/servicios`<br>`POST /api/servicios`<br>`PUT /api/servicios/:id`<br>`PATCH /api/servicios/:id/estado`<br>`DELETE /api/servicios/:id` | CRUD completo del catálogo de prestaciones profesionales y alternancia de disponibilidad (`activo`). |
 | **Usuarios y Auth** | `GET /api/usuarios?rol=$1`<br>`POST /api/usuarios`<br>`POST /api/usuarios/registro`<br>`POST /api/usuarios/login`<br>`PATCH /api/usuarios/:id/rol`<br>`PATCH /api/usuarios/:id/estado`<br>`DELETE /api/usuarios/:id` | Padrón de usuarios filtrable por rol (`$1`), autenticación `scrypt` con registro transaccional de acceso en `visitas_log`, cambio de rol en vivo (`Cliente` / `Colaborador` / `Administrador`) y suspensión de cuentas. |
-| **Contactos + Email** | `GET /api/contactos`<br>`POST /api/contactos`<br>`PATCH /api/contactos/:id/respondido`<br>`DELETE /api/contactos/:id` | Persiste la consulta en PostgreSQL, dispara notificación vía **Nodemailer** y permite al Administrador marcar mensajes como respondidos. |
+| **Contactos + Email** | `GET /api/contactos`<br>`POST /api/contactos`<br>`POST /api/contactos/:id/responder`<br>`PATCH /api/contactos/:id/respondido`<br>`DELETE /api/contactos/:id` | Persiste la consulta en PostgreSQL, dispara notificación vía **Nodemailer** y permite al Administrador redactar y enviar respuestas oficiales por correo electrónico (`POST /api/contactos/:id/responder`) guardando el texto en `contactos.respuesta`. |
 | **Métricas y BI** | `GET /api/metricas?dias=$1&seccion=$2`<br>`POST /api/metricas/visita` | Ejecuta 4 consultas SQL parametrizadas en paralelo (`Promise.all`) con `generate_series` para alimentar los KPIs y los 3 gráficos interactivos de Recharts. |
 
 ### 4.2. Consumo de API Externa en Tiempo Real

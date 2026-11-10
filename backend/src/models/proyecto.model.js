@@ -59,10 +59,45 @@ async function create({ titulo, descripcion, estado, tecnologias }) {
   return findById(id);
 }
 
+/**
+ * Actualiza un proyecto y REEMPLAZA sus tecnologías en una única transacción ACID.
+ * Si `descripcion` llega como undefined se conserva la existente.
+ * Devuelve null si el proyecto no existe.
+ */
+async function update(id, { titulo, descripcion, estado, tecnologias }) {
+  const actualizadoId = await withTransaction(async (client) => {
+    const { rows } = await client.query(
+      `UPDATE proyectos
+       SET titulo      = $2,
+           descripcion = CASE WHEN $3::boolean THEN $4 ELSE descripcion END,
+           estado      = COALESCE($5, estado)
+       WHERE id = $1
+       RETURNING id`,
+      [id, titulo, descripcion !== undefined, descripcion ?? null, estado || null]
+    );
+    if (rows.length === 0) return null;
+
+    await client.query('DELETE FROM proyecto_tecnologia WHERE proyecto_id = $1', [id]);
+
+    const tecnologiaIds = await tecnologiaModel.upsertMany(client, tecnologias);
+    if (tecnologiaIds.length > 0) {
+      await client.query(
+        `INSERT INTO proyecto_tecnologia (proyecto_id, tecnologia_id)
+         SELECT $1, unnest($2::int[])
+         ON CONFLICT DO NOTHING`,
+        [id, tecnologiaIds]
+      );
+    }
+    return id;
+  });
+
+  return actualizadoId ? findById(actualizadoId) : null;
+}
+
 /** Devuelve true si borró algo. Las filas de proyecto_tecnologia se borran por ON DELETE CASCADE. */
 async function remove(id) {
   const { rowCount } = await pool.query('DELETE FROM proyectos WHERE id = $1', [id]);
   return rowCount > 0;
 }
 
-module.exports = { findAll, findById, create, remove };
+module.exports = { findAll, findById, create, update, remove };

@@ -5,6 +5,13 @@ import {
   spring,
   cubicBezier
 } from 'animejs';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Lenis from 'lenis';
+
+if (typeof window !== 'undefined') {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 /**
  * Convierte una definición de easing avanzada (como 'spring(1, 80, 10, 0)' o
@@ -61,7 +68,7 @@ export function obtenerNodos(targets, rootEl = null) {
 }
 
 /**
- * Adaptador unificado de Anime.js que respeta la sintaxis de `skill.md`:
+ * Adaptador unificado de Anime.js que respeta la sintaxis de `SKILL.md`:
  * - `anime.timeline({ easing: 'spring(1, 80, 10, 0)', duration: 1000 })`
  * - `tl.add({ targets: '.elemento', translateY: [50, 0], opacity: [0, 1], delay: anime.stagger(100) }, '-=800')`
  * - `anime.stagger(100, { start: 150, from: 'first' })`
@@ -73,7 +80,7 @@ export const anime = {
   cubicBezier: (x1 = 0.22, y1 = 1, x2 = 0.36, y2 = 1) =>
     cubicBezier(x1, y1, x2, y2),
 
-  animate: ( { targets, easing, root, ...rest } ) => {
+  animate: ({ targets, easing, root, ...rest }) => {
     const nodos = obtenerNodos(targets, root);
     if (nodos.length === 0) return null;
     return animate(nodos, {
@@ -152,10 +159,129 @@ export const anime = {
 };
 
 /**
+ * Inicializa Lenis Smooth Scroll sincronizado con el ticker de GSAP y ScrollTrigger.
+ * Respeta automáticamente `prefers-reduced-motion: reduce`.
+ */
+export function inicializarSmoothScrollLenis() {
+  if (
+    typeof window === 'undefined' ||
+    typeof window.matchMedia !== 'function' ||
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  ) {
+    return () => {};
+  }
+
+  let lenis = null;
+  let tickerFn = null;
+
+  try {
+    lenis = new Lenis({
+      duration: 1.12,
+      smoothWheel: true,
+      wheelMultiplier: 0.95,
+      touchMultiplier: 1.4
+    });
+
+    lenis.on('scroll', ScrollTrigger.update);
+
+    tickerFn = (time) => {
+      lenis.raf(time * 1000);
+    };
+
+    gsap.ticker.add(tickerFn);
+    gsap.ticker.lagSmoothing(0);
+  } catch {
+    return () => {};
+  }
+
+  return () => {
+    if (tickerFn) gsap.ticker.remove(tickerFn);
+    if (lenis) lenis.destroy();
+  };
+}
+
+/**
+ * Orquesta animaciones vinculadas al scroll (GSAP + ScrollTrigger) dentro de un contenedor.
+ * Usa `gsap.context()` para revertir limpiamente al desmontar en React 19.
+ */
+export function animarScrollRevealGSAP(scopeEl, grupos = []) {
+  if (
+    !scopeEl ||
+    typeof window === 'undefined' ||
+    typeof window.matchMedia !== 'function' ||
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  ) {
+    return () => {};
+  }
+
+  const ctx = gsap.context(() => {
+    grupos.forEach(({ selector, y = 24, staggerDelay = 0.08 }) => {
+      const elementos = obtenerNodos(selector, scopeEl);
+      if (elementos.length === 0) return;
+
+      gsap.fromTo(
+        elementos,
+        { opacity: 0, y },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.55,
+          stagger: staggerDelay,
+          ease: 'power2.out',
+          overwrite: 'auto',
+          scrollTrigger: {
+            trigger: elementos[0],
+            start: 'top 90%',
+            toggleActions: 'play none none reverse'
+          }
+        }
+      );
+    });
+  }, scopeEl);
+
+  return () => ctx.revert();
+}
+
+/**
+ * Efecto parallax suave con GSAP ScrollTrigger sobre el Watermark de Flor de Loto.
+ */
+export function animarParallaxLotusGSAP(watermarkEl) {
+  if (
+    !watermarkEl ||
+    typeof window === 'undefined' ||
+    typeof window.matchMedia !== 'function' ||
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  ) {
+    return () => {};
+  }
+
+  const ctx = gsap.context(() => {
+    const svg = watermarkEl.querySelector('.lotus-watermark-svg');
+    if (!svg) return;
+
+    gsap.to(svg, {
+      yPercent: -10,
+      rotation: 8,
+      scale: 1.05,
+      ease: 'none',
+      scrollTrigger: {
+        trigger: document.documentElement,
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: 1.2
+      }
+    });
+  }, watermarkEl);
+
+  return () => ctx.revert();
+}
+
+/**
  * El estado hover de `.card-proyecto` se delega a CSS nativo (`translate: 0 -6px`)
- * en `src/App.css` para que componga de forma independiente a `transform` y nunca
- * interrumpa ni desfase la línea de tiempo (`anime.timeline`) de entrada.
+ * y al Spotlight interactivo (`--mouse-x`, `--mouse-y`) en `src/App.css`.
  */
 export function animarHoverTarjeta() {
-  // Manejado de forma 100% estable mediante `.card-proyecto:hover` en App.css
+  // Manejado mediante `.card-proyecto:hover` y `.card-proyecto::after` en App.css
 }
+
+export { gsap, ScrollTrigger };

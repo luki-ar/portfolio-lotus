@@ -16,6 +16,7 @@ import {
   demoSchema,
   servicioSchema,
   usuarioAdminSchema,
+  respuestaContactoSchema,
   validarConEsquema
 } from '../utils/validaciones';
 import { anime, animarHoverTarjeta } from '../utils/animaciones';
@@ -43,6 +44,7 @@ export function GestionDemos({ pedirAPI, proyectos = [], onCambioContenido }) {
   const [urlDemo, setUrlDemo] = useState('');
   const [descripcion, setDescripcion] = useState('');
   const [proyectoId, setProyectoId] = useState('');
+  const [editandoId, setEditandoId] = useState(null);
 
   useEffect(() => {
     const cargar = async () => {
@@ -56,6 +58,24 @@ export function GestionDemos({ pedirAPI, proyectos = [], onCambioContenido }) {
     };
     cargar();
   }, [pedirAPI]);
+
+  const iniciarEdicionDemo = (demo) => {
+    setError(null);
+    setEditandoId(demo.id);
+    setTitulo(demo.titulo || '');
+    setUrlDemo(demo.url_demo || '');
+    setDescripcion(demo.descripcion || '');
+    setProyectoId(demo.proyecto_id ? String(demo.proyecto_id) : '');
+  };
+
+  const cancelarEdicionDemo = () => {
+    setError(null);
+    setEditandoId(null);
+    setTitulo('');
+    setUrlDemo('');
+    setDescripcion('');
+    setProyectoId('');
+  };
 
   const agregarDemo = async (e) => {
     e.preventDefault();
@@ -73,20 +93,33 @@ export function GestionDemos({ pedirAPI, proyectos = [], onCambioContenido }) {
 
     setEnviando(true);
     try {
-      const creada = await pedirAPI('/demos', {
-        method: 'POST',
-        body: JSON.stringify({
-          titulo: validacion.datos.titulo,
-          url_demo: validacion.datos.url_demo,
-          descripcion: validacion.datos.descripcion || null,
-          proyecto_id: proyectoId ? Number(proyectoId) : null
-        })
-      });
-      setDemos((prev) => [creada, ...prev]);
-      setTitulo('');
-      setUrlDemo('');
-      setDescripcion('');
-      setProyectoId('');
+      const payload = {
+        titulo: validacion.datos.titulo,
+        url_demo: validacion.datos.url_demo,
+        descripcion: validacion.datos.descripcion || null,
+        proyecto_id: proyectoId ? Number(proyectoId) : null
+      };
+
+      if (editandoId) {
+        const actualizada = await pedirAPI(`/demos/${editandoId}`, {
+          method: 'PUT',
+          body: JSON.stringify(payload)
+        });
+        const proyVinculado = proyectos.find((p) => Number(p.id) === Number(actualizada.proyecto_id));
+        const enriquecida = {
+          ...actualizada,
+          proyecto_titulo: proyVinculado ? proyVinculado.titulo : null
+        };
+        setDemos((prev) => prev.map((d) => (d.id === editandoId ? enriquecida : d)));
+      } else {
+        const creada = await pedirAPI('/demos', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        setDemos((prev) => [creada, ...prev]);
+      }
+
+      cancelarEdicionDemo();
       if (onCambioContenido) onCambioContenido();
     } catch (err) {
       setError(err.message);
@@ -101,6 +134,7 @@ export function GestionDemos({ pedirAPI, proyectos = [], onCambioContenido }) {
     try {
       await pedirAPI(`/demos/${id}`, { method: 'DELETE' });
       setDemos((prev) => prev.filter((d) => d.id !== id));
+      if (editandoId === id) cancelarEdicionDemo();
       if (onCambioContenido) onCambioContenido();
     } catch (err) {
       setError(err.message);
@@ -153,8 +187,14 @@ export function GestionDemos({ pedirAPI, proyectos = [], onCambioContenido }) {
             </svg>
           </div>
           <div>
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '2px' }} className="text-white font-bold">Publicar Nueva Demo</h2>
-            <p style={{ marginBottom: 0, fontSize: '0.84rem' }}>Vinculá un despliegue interactivo al catálogo de proyectos.</p>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '2px' }} className="text-white font-bold">
+              {editandoId ? `Editar Demo #${editandoId}` : 'Publicar Nueva Demo'}
+            </h2>
+            <p style={{ marginBottom: 0, fontSize: '0.84rem' }}>
+              {editandoId
+                ? 'Actualizá el título, URL en vivo, descripción o proyecto vinculado.'
+                : 'Vinculá un despliegue interactivo al catálogo de proyectos.'}
+            </p>
           </div>
         </div>
         <form onSubmit={agregarDemo} noValidate>
@@ -219,9 +259,25 @@ export function GestionDemos({ pedirAPI, proyectos = [], onCambioContenido }) {
             </div>
           </div>
 
-          <button type="submit" className="btn-primario" disabled={enviando}>
-            {enviando ? 'Guardando Demo...' : 'Agregar Demo'}
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button type="submit" className="btn-primario" disabled={enviando}>
+              {enviando
+                ? 'Guardando Demo...'
+                : editandoId
+                  ? 'Guardar Cambios'
+                  : 'Agregar Demo'}
+            </button>
+            {editandoId && (
+              <button
+                type="button"
+                onClick={cancelarEdicionDemo}
+                disabled={enviando}
+                className="btn-secundario-outline"
+              >
+                Cancelar Edición
+              </button>
+            )}
+          </div>
         </form>
       </div>
 
@@ -278,6 +334,15 @@ export function GestionDemos({ pedirAPI, proyectos = [], onCambioContenido }) {
                   </svg>
                 </a>
                 <button
+                  type="button"
+                  onClick={() => iniciarEdicionDemo(demo)}
+                  disabled={eliminandoId === demo.id}
+                  className="btn-secundario-outline"
+                >
+                  Editar
+                </button>
+                <button
+                  type="button"
                   onClick={() => eliminarDemo(demo.id)}
                   disabled={eliminandoId === demo.id}
                   className="btn-peligro-outline"
@@ -308,6 +373,7 @@ export function GestionServicios({ pedirAPI, onCambioContenido }) {
   const [categoria, setCategoria] = useState(CATEGORIAS_SERVICIO[0]);
   const [precioDesde, setPrecioDesde] = useState('');
   const [descripcion, setDescripcion] = useState('');
+  const [editandoId, setEditandoId] = useState(null);
 
   useEffect(() => {
     const cargar = async () => {
@@ -351,6 +417,24 @@ export function GestionServicios({ pedirAPI, onCambioContenido }) {
     return () => tl.revert();
   }, [cargando, servicios.length]);
 
+  const iniciarEdicionServicio = (srv) => {
+    setError(null);
+    setEditandoId(srv.id);
+    setNombre(srv.nombre || '');
+    setCategoria(srv.categoria || CATEGORIAS_SERVICIO[0]);
+    setPrecioDesde(srv.precio_desde !== undefined ? String(srv.precio_desde) : '');
+    setDescripcion(srv.descripcion || '');
+  };
+
+  const cancelarEdicionServicio = () => {
+    setError(null);
+    setEditandoId(null);
+    setNombre('');
+    setPrecioDesde('');
+    setDescripcion('');
+    setCategoria(CATEGORIAS_SERVICIO[0]);
+  };
+
   const agregarServicio = async (e) => {
     e.preventDefault();
     setError(null);
@@ -368,15 +452,21 @@ export function GestionServicios({ pedirAPI, onCambioContenido }) {
 
     setEnviando(true);
     try {
-      const creado = await pedirAPI('/servicios', {
-        method: 'POST',
-        body: JSON.stringify(validacion.datos)
-      });
-      setServicios((prev) => [creado, ...prev]);
-      setNombre('');
-      setPrecioDesde('');
-      setDescripcion('');
-      setCategoria(CATEGORIAS_SERVICIO[0]);
+      if (editandoId) {
+        const actualizado = await pedirAPI(`/servicios/${editandoId}`, {
+          method: 'PUT',
+          body: JSON.stringify(validacion.datos)
+        });
+        setServicios((prev) => prev.map((s) => (s.id === editandoId ? actualizado : s)));
+      } else {
+        const creado = await pedirAPI('/servicios', {
+          method: 'POST',
+          body: JSON.stringify(validacion.datos)
+        });
+        setServicios((prev) => [creado, ...prev]);
+      }
+
+      cancelarEdicionServicio();
       if (onCambioContenido) onCambioContenido();
     } catch (err) {
       setError(err.message);
@@ -404,6 +494,7 @@ export function GestionServicios({ pedirAPI, onCambioContenido }) {
     try {
       await pedirAPI(`/servicios/${id}`, { method: 'DELETE' });
       setServicios((prev) => prev.filter((s) => s.id !== id));
+      if (editandoId === id) cancelarEdicionServicio();
       if (onCambioContenido) onCambioContenido();
     } catch (err) {
       setError(err.message);
@@ -426,8 +517,14 @@ export function GestionServicios({ pedirAPI, onCambioContenido }) {
             </svg>
           </div>
           <div>
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '2px' }} className="text-white font-bold">Agregar Servicio Ofertado</h2>
-            <p style={{ marginBottom: 0, fontSize: '0.84rem' }}>Definí prestaciones profesionales, categoría y tarifa base en USD.</p>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '2px' }} className="text-white font-bold">
+              {editandoId ? `Editar Servicio #${editandoId}` : 'Agregar Servicio Ofertado'}
+            </h2>
+            <p style={{ marginBottom: 0, fontSize: '0.84rem' }}>
+              {editandoId
+                ? 'Modificá la prestación, categoría técnica o tarifa base en USD.'
+                : 'Definí prestaciones profesionales, categoría y tarifa base en USD.'}
+            </p>
           </div>
         </div>
         <form onSubmit={agregarServicio} noValidate>
@@ -489,9 +586,25 @@ export function GestionServicios({ pedirAPI, onCambioContenido }) {
               disabled={enviando}
             />
           </div>
-          <button type="submit" className="btn-primario" disabled={enviando}>
-            {enviando ? 'Publicando Servicio...' : 'Publicar Servicio'}
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button type="submit" className="btn-primario" disabled={enviando}>
+              {enviando
+                ? 'Guardando Servicio...'
+                : editandoId
+                  ? 'Guardar Cambios'
+                  : 'Publicar Servicio'}
+            </button>
+            {editandoId && (
+              <button
+                type="button"
+                onClick={cancelarEdicionServicio}
+                disabled={enviando}
+                className="btn-secundario-outline"
+              >
+                Cancelar Edición
+              </button>
+            )}
+          </div>
         </form>
       </div>
 
@@ -547,6 +660,15 @@ export function GestionServicios({ pedirAPI, onCambioContenido }) {
                 </p>
                 <div className="flex gap-2.5 flex-wrap">
                   <button
+                    type="button"
+                    onClick={() => iniciarEdicionServicio(srv)}
+                    disabled={procesandoId === srv.id}
+                    className="btn-secundario-outline"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => alternarEstado(srv.id)}
                     disabled={procesandoId === srv.id}
                     className="btn-secundario-outline"
@@ -554,6 +676,7 @@ export function GestionServicios({ pedirAPI, onCambioContenido }) {
                     {srv.activo ? 'Pausar' : 'Activar'}
                   </button>
                   <button
+                    type="button"
                     onClick={() => eliminarServicio(srv.id)}
                     disabled={procesandoId === srv.id}
                     className="btn-peligro-outline"
@@ -858,6 +981,7 @@ export function PanelUsuarios({ pedirAPI, onCambioUsuarios }) {
         <div
           className="tabla-contenedor card-proyecto"
           style={{ padding: '20px', overflowX: 'auto', willChange: 'transform, opacity' }}
+          data-lenis-prevent="true"
         >
           <table className="tabla-admin">
             <thead>
@@ -956,6 +1080,10 @@ export function GestionContactos({ pedirAPI }) {
   const [error, setError] = useState(null);
   const [procesandoId, setProcesandoId] = useState(null);
   const [filtroEstado, setFiltroEstado] = useState('todos'); // 'todos' | 'pendientes' | 'respondidos'
+  const [respondiendoId, setRespondiendoId] = useState(null);
+  const [textoRespuesta, setTextoRespuesta] = useState('');
+  const [enviandoRespuesta, setEnviandoRespuesta] = useState(false);
+  const [feedbackEnvio, setFeedbackEnvio] = useState(null);
   const contactosRef = useRef(null);
 
   useEffect(() => {
@@ -968,6 +1096,7 @@ export function GestionContactos({ pedirAPI }) {
   const alternarRespondido = async (id) => {
     setProcesandoId(id);
     setError(null);
+    setFeedbackEnvio(null);
     try {
       const actualizado = await pedirAPI(`/contactos/${id}/respondido`, { method: 'PATCH' });
       setContactos((prev) => prev.map((c) => (c.id === id ? actualizado : c)));
@@ -978,12 +1107,66 @@ export function GestionContactos({ pedirAPI }) {
     }
   };
 
+  const abrirFormularioRespuesta = (item) => {
+    setError(null);
+    setFeedbackEnvio(null);
+    if (respondiendoId === item.id) {
+      setRespondiendoId(null);
+      setTextoRespuesta('');
+      return;
+    }
+    setRespondiendoId(item.id);
+    setTextoRespuesta(
+      item.respuesta ||
+        `Hola ${item.nombre}, gracias por escribir al equipo LOTUS sobre "${item.asunto}". `
+    );
+  };
+
+  const enviarRespuestaEmail = async (e, item) => {
+    e.preventDefault();
+    setError(null);
+    setFeedbackEnvio(null);
+
+    const validacion = validarConEsquema(respuestaContactoSchema, {
+      respuesta: textoRespuesta
+    });
+    if (!validacion.ok) {
+      setError(validacion.error);
+      return;
+    }
+
+    setEnviandoRespuesta(true);
+    try {
+      const res = await pedirAPI(`/contactos/${item.id}/responder`, {
+        method: 'POST',
+        body: JSON.stringify({ respuesta: validacion.datos.respuesta })
+      });
+      if (res?.contacto) {
+        setContactos((prev) => prev.map((c) => (c.id === item.id ? res.contacto : c)));
+      }
+      setFeedbackEnvio(
+        `Respuesta enviada a ${item.email} y registrada en PostgreSQL (modo: ${res?.correo?.modo || 'procesado'}).`
+      );
+      setRespondiendoId(null);
+      setTextoRespuesta('');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setEnviandoRespuesta(false);
+    }
+  };
+
   const eliminarContacto = async (id) => {
     setProcesandoId(id);
     setError(null);
+    setFeedbackEnvio(null);
     try {
       await pedirAPI(`/contactos/${id}`, { method: 'DELETE' });
       setContactos((prev) => prev.filter((c) => c.id !== id));
+      if (respondiendoId === id) {
+        setRespondiendoId(null);
+        setTextoRespuesta('');
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -1035,7 +1218,7 @@ export function GestionContactos({ pedirAPI }) {
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-white">Bandeja de Gestión de Contactos</h2>
           <p className="text-sm text-gray-400">
-            Consultas, cotizaciones y pedidos de asesoría recibidos vía email (Nodemailer + Supabase).
+            Consultas, cotizaciones y pedidos de asesoría recibidos y respondidos vía email (Nodemailer + Supabase).
           </p>
         </div>
         <div className="flex items-center gap-2.5">
@@ -1056,6 +1239,16 @@ export function GestionContactos({ pedirAPI }) {
           </select>
         </div>
       </div>
+
+      {feedbackEnvio && (
+        <div
+          role="status"
+          className="mb-6 p-4 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 text-sm flex items-center gap-3"
+        >
+          <span className="status-dot" style={{ background: '#4ade80', marginRight: 0 }} />
+          <span>{feedbackEnvio}</span>
+        </div>
+      )}
 
       {error && (
         <div
@@ -1117,8 +1310,73 @@ export function GestionContactos({ pedirAPI }) {
                 </p>
               )}
 
+              {item.respuesta && (
+                <div className="mb-4 rounded-xl border border-indigo-400/30 bg-indigo-950/35 p-3.5">
+                  <p className="text-xs font-semibold uppercase tracking-wider text-indigo-300" style={{ marginBottom: '4px' }}>
+                    Respuesta enviada por LOTUS
+                    {item.respondido_en ? ` • ${new Date(item.respondido_en).toLocaleString('es-AR')}` : ''}
+                  </p>
+                  <p className="text-sm text-slate-200" style={{ marginBottom: 0 }}>
+                    {item.respuesta}
+                  </p>
+                </div>
+              )}
+
+              {respondiendoId === item.id && (
+                <form
+                  onSubmit={(e) => enviarRespuestaEmail(e, item)}
+                  className="mb-4 rounded-2xl border border-indigo-500/35 bg-slate-950/75 p-4"
+                  noValidate
+                >
+                  <label htmlFor={`respuesta-contacto-${item.id}`} className="label-form">
+                    Redactar respuesta oficial para {item.nombre} ({item.email}) *
+                  </label>
+                  <textarea
+                    id={`respuesta-contacto-${item.id}`}
+                    rows={3}
+                    value={textoRespuesta}
+                    onChange={(e) => setTextoRespuesta(e.target.value)}
+                    placeholder="Escribí la respuesta (mín. 10 caracteres). Se enviará vía Nodemailer y quedará registrada en PostgreSQL..."
+                    className="input-form"
+                    style={{ marginBottom: '12px' }}
+                    disabled={enviandoRespuesta}
+                  />
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <button
+                      type="submit"
+                      disabled={enviandoRespuesta}
+                      className="btn-primario"
+                      style={{ padding: '8px 18px', fontSize: '0.84rem' }}
+                    >
+                      {enviandoRespuesta ? 'Enviando correo...' : 'Enviar Respuesta (Nodemailer)'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRespondiendoId(null);
+                        setTextoRespuesta('');
+                      }}
+                      disabled={enviandoRespuesta}
+                      className="btn-secundario-outline"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              )}
+
               <div className="flex flex-wrap gap-3 pt-3 border-t border-white/10">
                 <button
+                  type="button"
+                  onClick={() => abrirFormularioRespuesta(item)}
+                  disabled={procesandoId === item.id}
+                  className="btn-primario"
+                  style={{ padding: '8px 16px', fontSize: '0.82rem' }}
+                >
+                  <span>{respondiendoId === item.id ? 'Cerrar Editor' : item.respuesta ? 'Editar / Reenviar Respuesta' : 'Responder desde la Web'}</span>
+                </button>
+                <button
+                  type="button"
                   onClick={() => alternarRespondido(item.id)}
                   disabled={procesandoId === item.id}
                   className="btn-secundario-outline"
@@ -1130,9 +1388,10 @@ export function GestionContactos({ pedirAPI }) {
                   className="btn-secundario-outline"
                   style={{ textDecoration: 'none' }}
                 >
-                  Responder por Correo
+                  Cliente de Correo Externo
                 </a>
                 <button
+                  type="button"
                   onClick={() => eliminarContacto(item.id)}
                   disabled={procesandoId === item.id}
                   className="btn-peligro-outline"

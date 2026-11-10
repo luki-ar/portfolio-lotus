@@ -8,7 +8,8 @@ import {
   validarConEsquema,
   validarArchivoAdjunto
 } from '../utils/validaciones';
-import { anime, animarHoverTarjeta } from '../utils/animaciones';
+import { anime, animarHoverTarjeta, animarScrollRevealGSAP } from '../utils/animaciones';
+import { ShinyText } from './ReactBitsEffects';
 
 // =====================================================================
 // 1. PRESENTACIÓN PROFESIONAL (Perfil, Stack Full-Stack, Servicios y Experiencia)
@@ -21,8 +22,8 @@ export function PresentacionProfesional({ pedirAPI }) {
   const stackCategorias = [
     {
       area: 'Frontend & UI/UX',
-      descripcion: 'Interfaces SPA reactivas, diseño de sistemas en Figma, animaciones fluidas y visualización de datos.',
-      tecnologias: ['React 19', 'Tailwind CSS', 'React Router v7', 'Recharts', 'Anime.js', 'Zod', 'Figma']
+      descripcion: 'Interfaces SPA reactivas con Glassmorphism multicapa, smooth scroll, animaciones cinéticas y visualización de datos.',
+      tecnologias: ['React 19', 'Tailwind CSS', 'GSAP & ScrollTrigger', 'Lenis Smooth Scroll', 'React Bits Glass UI', 'Anime.js', 'Recharts', 'Zod']
     },
     {
       area: 'Backend & APIs REST',
@@ -66,7 +67,7 @@ export function PresentacionProfesional({ pedirAPI }) {
       .finally(() => setCargandoServicios(false));
   }, [pedirAPI]);
 
-  // Orquestación de entrada de múltiples etapas con anime.timeline() y spring(1, 80, 10, 0)
+  // Orquestación de entrada con anime.timeline() y spring(1, 80, 10, 0) + Scroll Reveal con GSAP ScrollTrigger
   useLayoutEffect(() => {
     const scope = perfilRef.current;
     if (!scope) return;
@@ -82,38 +83,25 @@ export function PresentacionProfesional({ pedirAPI }) {
       translateY: [38, 0],
       scale: [0.97, 1],
       opacity: [0, 1]
-    })
-      .add(
-        {
-          targets: '.perfil-hero-item',
-          translateY: [28, 0],
-          opacity: [0, 1],
-          delay: anime.stagger(95)
-        },
-        '-=800'
-      )
-      .add(
-        {
-          targets: '.stack-card',
-          translateY: [48, 0],
-          scale: [0.93, 1],
-          opacity: [0, 1],
-          delay: anime.stagger(110)
-        },
-        '-=740'
-      )
-      .add(
-        {
-          targets: '.experiencia-card',
-          translateX: [-32, 0],
-          opacity: [0, 1],
-          easing: 'cubicBezier(0.22, 1, 0.36, 1)',
-          delay: anime.stagger(115)
-        },
-        '-=700'
-      );
+    }).add(
+      {
+        targets: '.perfil-hero-item',
+        translateY: [28, 0],
+        opacity: [0, 1],
+        delay: anime.stagger(95)
+      },
+      '-=800'
+    );
 
-    return () => tl.revert();
+    const limpiarGSAP = animarScrollRevealGSAP(scope, [
+      { selector: '.stack-card', y: 32, staggerDelay: 0.09 },
+      { selector: '.experiencia-card', y: 24, staggerDelay: 0.1 }
+    ]);
+
+    return () => {
+      tl.revert();
+      limpiarGSAP();
+    };
   }, []);
 
   // Cascada escalonada cuando terminan de cargar los servicios ofertados desde Supabase
@@ -153,7 +141,7 @@ export function PresentacionProfesional({ pedirAPI }) {
               <path d="M12 19C7.5 15.5 5 11 6 6.5C9 8.5 11 12.5 12 19Z" />
               <path d="M12 19C16.5 15.5 19 11 18 6.5C15 8.5 13 12.5 12 19Z" />
             </svg>
-            <span>Presentación Profesional • Ingeniería Full-Stack</span>
+            <ShinyText speed={4.2}>Presentación Profesional • Ingeniería Full-Stack</ShinyText>
           </span>
         </div>
         <h1

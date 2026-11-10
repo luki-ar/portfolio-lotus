@@ -1,70 +1,76 @@
-# Getting Started with Create React App
+# LOTUS. — Plataforma Web Full-Stack & Portfolio Profesional
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+**Asignatura:** Lenguajes IV — Trabajo Final Integrador (Nivel Promoción Directa 2026)  
+**Equipo de Desarrollo:** Lucas Colque, Mauricio Navarro, Gabriel Vargas, Pilar Alvarado  
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 1. Enlaces de Despliegue en la Nube (Producción)
 
-### `npm start`
+- **Frontend en Vivo (Vercel):** https://portfolio-lotus.vercel.app/
+- **API REST Backend (Render):** https://lotus-backend-api.onrender.com/api/health
+- **Repositorio Oficial (GitHub):** https://github.com/luki-ar/portfolio-lotus
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 2. Tecnologías, Lenguajes y Librerías Empleadas
 
-### `npm test`
+### Capa de Presentación (Frontend)
+- **Lenguajes:** JavaScript (ES6+), HTML5 Semántico, CSS3 (Variables nativas, Grid, Flexbox, Multi-Layer Glassmorphism).
+- **Framework Principal:** **React 19** (`react`, `react-dom`) + **React Router DOM v7** (`react-router-dom`) con protección de rutas por rol (**RBAC**).
+- **Estilizado y Diseño UI/UX:** **Tailwind CSS** + sistema de diseño propio **Obsidian Botanical Glassmorphism** (`src/App.css`) + bloque interactivo **`GlassmorphismPortfolioBlock`** (`SKILL1.md`).
+- **Ecosistema de Animaciones y Movimiento Cinético:**
+  - **GSAP (`gsap` + `ScrollTrigger`):** Revelado progresivo de secciones al hacer scroll y parallax continuo del emblema de Flor de Loto.
+  - **Lenis (`lenis`):** Motor de *Smooth Scroll* inercial sincronizado al ticker de `requestAnimationFrame` de GSAP.
+  - **Anime.js (`animejs`):** Orquestación de líneas de tiempo de entrada (`anime.timeline`) con física de resorte `spring(1, 80, 10, 0)` y cascadas `anime.stagger()`.
+  - **React Bits (`src/components/ReactBitsEffects.jsx`):** Componentes interactivos `SpotlightCard` (refracción radial que sigue el cursor), `BlurText` (revelado óptico palabra por palabra), `ShinyText` (barrido especular metálico) y `AuroraGlassBackground`.
+- **Validación Estricta de Formularios:** **Zod** (`src/utils/validaciones.js`) validando los **8 esquemas** del sistema (Login, Registro, Contacto, Proyectos, Demos, Servicios, Usuarios Admin y Respuesta de Contacto por Email) más validador de archivos adjuntos (tipo MIME, extensión y límite de 5 MB).
+- **Visualización de Datos y Métricas:** **Recharts** (`BarChart` de evolución diaria, `PieChart` de distribución de catálogo 3FN y `BarChart` de visitas por sección).
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Capa de Lógica de Negocio (Backend API REST)
+- **Entorno y Framework:** **Node.js** + **Express 4** estructurado bajo el patrón *Routes → Controllers → Models → Middlewares*.
+- **Servicio de Correo Electrónico:** **Nodemailer** (`backend/src/utils/mailer.js`) para notificaciones automáticas de nuevas consultas y **envío de respuestas directas por email desde el Panel Admin** (`POST /api/contactos/:id/responder`), con fallback seguro `streamTransport` cuando no se configuran credenciales SMTP externas.
+- **Seguridad:** Hash de contraseñas con `crypto.scryptSync`, CORS configurable y validación de parámetros HTTP.
 
-### `npm run build`
+### Capa de Datos (Persistencia Relacional)
+- **Motor RDBMS:** **PostgreSQL** alojado en **Supabase Cloud** conectado mediante el driver oficial `pg` (`Pool` con SSL y soporte de transacciones **ACID** `BEGIN / COMMIT / ROLLBACK`).
+- **Modelado en 3FN:** 8 tablas normalizadas (`proyectos`, `tecnologias`, `proyecto_tecnologia`, `demos`, `servicios`, `usuarios`, `visitas_log`, `contactos`) con integridad referencial declarativa (`ON DELETE CASCADE`, `ON DELETE RESTRICT`, `ON DELETE SET NULL`) y migraciones idempotentes al arranque (`backend/src/config/migraciones.js`).
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 3. Instalación y Ejecución en Entorno Local
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### 3.1. Clonar el repositorio
+```bash
+git clone https://github.com/luki-ar/portfolio-lotus.git
+cd portfolio-lotus
+```
 
-### `npm run eject`
+### 3.2. Ejecutar el Frontend
+```bash
+npm install
+npm start
+```
+- Abre `http://localhost:3000`. Si no se define un archivo `.env`, podés crear uno con `REACT_APP_API_URL=https://lotus-backend-api.onrender.com/api` para conectarte directamente al backend en la nube, o apuntar a `http://localhost:4000/api` si levantás el backend localmente.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### 3.3. Ejecutar el Backend (Opcional para desarrollo de API)
+```bash
+cd backend
+npm install
+npm run dev
+```
+- Requiere configurar `backend/.env` tomando como plantilla [`backend/.env.example`](backend/.env.example).
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 3.4. Pruebas Automatizadas y Build de Producción
+```bash
+npm test -- --watchAll=false
+npm run build
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+---
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 4. Documentación Técnica Complementaria
 
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- [`MANUAL_ESTILO.md`](MANUAL_ESTILO.md): Anteproyecto de diseño UI/UX, paleta de colores `#HEX`, tipografía, prototipado de vistas, animaciones (GSAP + Lenis + Anime.js + React Bits) y responsividad móvil/desktop.
+- [`ARQUITECTURA.md`](ARQUITECTURA.md): Diagrama de arquitectura en 3 capas, diagrama Entidad-Relación (3FN), tabla completa de endpoints CRUD (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`) e integración con GitHub REST API.
+- [`DESPLIEGUE.md`](DESPLIEGUE.md): Guía paso a paso del despliegue continuo en Vercel, Render y Supabase.

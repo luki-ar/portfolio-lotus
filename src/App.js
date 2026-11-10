@@ -23,13 +23,32 @@ import {
   validarConEsquema,
   validarArchivoAdjunto
 } from './utils/validaciones';
-import { anime, animarHoverTarjeta } from './utils/animaciones';
+import {
+  anime,
+  animarHoverTarjeta,
+  inicializarSmoothScrollLenis,
+  animarScrollRevealGSAP,
+  animarParallaxLotusGSAP
+} from './utils/animaciones';
+import {
+  AuroraGlassBackground,
+  ShinyText,
+  BlurText,
+  GlassmorphismPortfolioBlock,
+  useGlobalCardSpotlight
+} from './components/ReactBitsEffects';
 import './App.css';
 
-// Watermark ambiental de Flor de Loto (Identidad Visual Obsidian Botanical)
+// Watermark ambiental de Flor de Loto (Identidad Visual Obsidian Botanical + GSAP Parallax)
 function LotusWatermark() {
+  const watermarkRef = useRef(null);
+
+  useLayoutEffect(() => {
+    return animarParallaxLotusGSAP(watermarkRef.current);
+  }, []);
+
   return (
-    <div className="lotus-watermark-bg" aria-hidden="true">
+    <div ref={watermarkRef} className="lotus-watermark-bg" aria-hidden="true">
       <svg
         className="lotus-watermark-svg"
         viewBox="0 0 400 400"
@@ -109,7 +128,7 @@ function Inicio() {
     { nombre: 'Pilar Alvarado', rol: 'Frontend & UI/UX', habilidades: ['React', 'CSS', 'APIs'] }
   ];
 
-  // Orquestación de múltiples etapas con anime.timeline(), spring(1, 80, 10, 0) y anime.stagger()
+  // Orquestación Hero con anime.timeline(), spring(1, 80, 10, 0) + Scroll Reveal con GSAP ScrollTrigger
   useLayoutEffect(() => {
     const scope = inicioRef.current;
     if (!scope) return;
@@ -145,39 +164,19 @@ function Inicio() {
           delay: anime.stagger(100)
         },
         '-=760'
-      )
-      .add(
-        {
-          targets: '.seccion-header',
-          translateX: [-24, 0],
-          opacity: [0, 1],
-          easing: 'cubicBezier(0.22, 1, 0.36, 1)',
-          delay: anime.stagger(120)
-        },
-        '-=740'
-      )
-      .add(
-        {
-          targets: '.card-animada',
-          translateY: [50, 0],
-          scale: [0.93, 1],
-          opacity: [0, 1],
-          delay: anime.stagger(120)
-        },
-        '-=680'
-      )
-      .add(
-        {
-          targets: '.team-animada',
-          translateY: [45, 0],
-          scale: [0.94, 1],
-          opacity: [0, 1],
-          delay: anime.stagger(105, { from: 'center' })
-        },
-        '-=700'
       );
 
-    return () => tl.revert();
+    const limpiarGSAP = animarScrollRevealGSAP(scope, [
+      { selector: '.seccion-header', y: 20, staggerDelay: 0.1 },
+      { selector: '.card-animada', y: 34, staggerDelay: 0.11 },
+      { selector: '.glass-insight-block', y: 36, staggerDelay: 0.1 },
+      { selector: '.team-animada', y: 32, staggerDelay: 0.09 }
+    ]);
+
+    return () => {
+      tl.revert();
+      limpiarGSAP();
+    };
   }, []);
 
   return (
@@ -190,7 +189,9 @@ function Inicio() {
               <path d="M12 19C7.5 15.5 5 11 6 6.5C9 8.5 11 12.5 12 19Z" />
               <path d="M12 19C16.5 15.5 19 11 18 6.5C15 8.5 13 12.5 12 19Z" />
             </svg>
-            <span>Lotus Engineering • Arquitectura Full-Stack en 3 Capas</span>
+            <ShinyText speed={4.2}>
+              Lotus Engineering • Arquitectura Full-Stack en 3 Capas
+            </ShinyText>
           </span>
         </div>
         <h1 className="hero-title">
@@ -198,7 +199,7 @@ function Inicio() {
             className="hero-elemento hero-title-part inline-block"
             style={{ willChange: 'transform, opacity' }}
           >
-            Construyendo experiencias digitales{' '}
+            <BlurText text="Construyendo experiencias digitales" delayStep={75} />{' '}
           </span>
           <span
             className="hero-elemento hero-title-part text-gradient inline-block"
@@ -313,6 +314,9 @@ function Inicio() {
         </div>
       </div>
 
+      {/* Bloque Glassmorphism Portfolio Insight (basado en SKILL1.md) */}
+      <GlassmorphismPortfolioBlock LinkComponent={Link} />
+
       <div style={{ maxWidth: '1050px', margin: '0 auto', padding: '0 20px 80px' }}>
         <div
           className="seccion-header flex items-center justify-between flex-wrap gap-2 mb-7"
@@ -399,12 +403,31 @@ function GestionProyectos({ seccionInicial = 'proyectos' }) {
   const [nuevaTec, setNuevaTec] = useState('');
   const [nuevoEstado, setNuevoEstado] = useState(ESTADOS[0]);
   const [archivoPortada, setArchivoPortada] = useState(null);
+  const [editandoProyectoId, setEditandoProyectoId] = useState(null);
 
   useEffect(() => {
     setSeccionActiva(seccionInicial);
   }, [seccionInicial]);
 
   const notificarCambio = () => setRefrescarDashboard((n) => n + 1);
+
+  const iniciarEdicionProyecto = (proy) => {
+    setError(null);
+    setEditandoProyectoId(proy.id);
+    setNuevoTitulo(proy.titulo || '');
+    setNuevaTec(Array.isArray(proy.tecnologias) ? proy.tecnologias.map((t) => t.nombre).join(', ') : '');
+    setNuevoEstado(proy.estado || ESTADOS[0]);
+    setArchivoPortada(null);
+  };
+
+  const cancelarEdicionProyecto = () => {
+    setError(null);
+    setEditandoProyectoId(null);
+    setNuevoTitulo('');
+    setNuevaTec('');
+    setNuevoEstado(ESTADOS[0]);
+    setArchivoPortada(null);
+  };
 
   // READ: al montar el componente se piden los proyectos al backend (GET).
   useEffect(() => {
@@ -422,7 +445,7 @@ function GestionProyectos({ seccionInicial = 'proyectos' }) {
     cargarProyectos();
   }, []);
 
-  // CREATE: valida con Zod + archivo opcional, envía al backend (POST) y actualiza la lista.
+  // CREATE / UPDATE: valida con Zod + archivo opcional, envía al backend (POST o PUT) y actualiza la lista.
   const agregarProyecto = async (e) => {
     e.preventDefault();
     setError(null);
@@ -455,19 +478,29 @@ function GestionProyectos({ seccionInicial = 'proyectos' }) {
 
     setEnviando(true);
     try {
-      const creado = await pedirAPI('/proyectos', {
-        method: 'POST',
-        body: JSON.stringify({
-          titulo: valTexto.datos.titulo,
-          tecnologias: listaTecnologias,
-          estado: valTexto.datos.estado
-        })
-      });
-      setProyectos((previos) => [...previos, creado]);
-      setNuevoTitulo('');
-      setNuevaTec('');
-      setNuevoEstado(ESTADOS[0]);
-      setArchivoPortada(null);
+      const payload = {
+        titulo: valTexto.datos.titulo,
+        tecnologias: listaTecnologias,
+        estado: valTexto.datos.estado
+      };
+
+      if (editandoProyectoId) {
+        const actualizado = await pedirAPI(`/proyectos/${editandoProyectoId}`, {
+          method: 'PUT',
+          body: JSON.stringify(payload)
+        });
+        setProyectos((previos) =>
+          previos.map((p) => (p.id === editandoProyectoId ? actualizado : p))
+        );
+      } else {
+        const creado = await pedirAPI('/proyectos', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        setProyectos((previos) => [...previos, creado]);
+      }
+
+      cancelarEdicionProyecto();
       notificarCambio();
     } catch (err) {
       setError(err.message);
@@ -483,6 +516,9 @@ function GestionProyectos({ seccionInicial = 'proyectos' }) {
     try {
       await pedirAPI(`/proyectos/${id}`, { method: 'DELETE' });
       setProyectos((previos) => previos.filter((p) => p.id !== id));
+      if (editandoProyectoId === id) {
+        cancelarEdicionProyecto();
+      }
       notificarCambio();
     } catch (err) {
       setError(err.message);
@@ -578,7 +614,7 @@ function GestionProyectos({ seccionInicial = 'proyectos' }) {
       </div>
 
       {/* Sub-navegación del Panel de Control del Rol Administrador */}
-      <div className="admin-tabs" role="tablist" aria-label="Secciones de administración">
+      <div className="admin-tabs" role="tablist" aria-label="Secciones de administración" data-lenis-prevent="true">
         {pestañas.map((tab) => (
           <button
             key={tab.id}
@@ -643,8 +679,14 @@ function GestionProyectos({ seccionInicial = 'proyectos' }) {
                 </svg>
               </div>
               <div>
-                <h2 style={{ fontSize: '1.5rem', marginBottom: '2px' }} className="text-white font-bold">Agregar al Portfolio</h2>
-                <p style={{ marginBottom: 0, fontSize: '0.84rem' }}>Alta de proyectos con relación N:M hacia el catálogo de tecnologías en PostgreSQL.</p>
+                <h2 style={{ fontSize: '1.5rem', marginBottom: '2px' }} className="text-white font-bold">
+                  {editandoProyectoId ? `Editar Proyecto #${editandoProyectoId}` : 'Agregar al Portfolio'}
+                </h2>
+                <p style={{ marginBottom: 0, fontSize: '0.84rem' }}>
+                  {editandoProyectoId
+                    ? 'Modificá el título, estado o tecnologías vinculadas y guardá los cambios en PostgreSQL.'
+                    : 'Alta de proyectos con relación N:M hacia el catálogo de tecnologías en PostgreSQL.'}
+                </p>
               </div>
             </div>
             <form onSubmit={agregarProyecto} noValidate>
@@ -702,9 +744,25 @@ function GestionProyectos({ seccionInicial = 'proyectos' }) {
                   )}
                 </div>
               </div>
-              <button type="submit" className="btn-primario" disabled={enviando}>
-                {enviando ? 'Publicando...' : 'Publicar Proyecto'}
-              </button>
+              <div className="flex flex-wrap items-center gap-3">
+                <button type="submit" className="btn-primario" disabled={enviando}>
+                  {enviando
+                    ? 'Guardando...'
+                    : editandoProyectoId
+                      ? 'Guardar Cambios'
+                      : 'Publicar Proyecto'}
+                </button>
+                {editandoProyectoId && (
+                  <button
+                    type="button"
+                    onClick={cancelarEdicionProyecto}
+                    disabled={enviando}
+                    className="btn-secundario-outline"
+                  >
+                    Cancelar Edición
+                  </button>
+                )}
+              </div>
             </form>
           </div>
 
@@ -749,9 +807,24 @@ function GestionProyectos({ seccionInicial = 'proyectos' }) {
                       <span className="status-dot" style={{ background: '#6366f1', marginRight: 0 }} />
                       Estado: <strong style={{ color: 'var(--accent-1)' }}>{proy.estado}</strong>
                     </span>
-                    <button onClick={() => eliminarProyecto(proy.id)} disabled={eliminandoId === proy.id} className="btn-peligro-outline">
-                      {eliminandoId === proy.id ? 'Removiendo...' : 'Remover'}
-                    </button>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={() => iniciarEdicionProyecto(proy)}
+                        disabled={eliminandoId === proy.id}
+                        className="btn-secundario-outline"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => eliminarProyecto(proy.id)}
+                        disabled={eliminandoId === proy.id}
+                        className="btn-peligro-outline"
+                      >
+                        {eliminandoId === proy.id ? 'Removiendo...' : 'Remover'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -955,7 +1028,8 @@ function FooterLotus() {
           <span>• Portfolio Full-Stack Integrador (Lenguajes IV)</span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="tag-tecnologia" style={{ marginBottom: 0 }}>React 19 + Tailwind</span>
+          <span className="tag-tecnologia" style={{ marginBottom: 0 }}>React 19 + Tailwind Glass</span>
+          <span className="tag-tecnologia" style={{ marginBottom: 0 }}>GSAP + Lenis + Anime.js</span>
           <span className="tag-tecnologia" style={{ marginBottom: 0 }}>Node.js + Express</span>
           <span className="tag-tecnologia" style={{ marginBottom: 0 }}>PostgreSQL / Supabase</span>
         </div>
@@ -975,6 +1049,13 @@ export default function App() {
   });
 
   const esAdmin = verificarEsAdmin(usuarioActual);
+
+  // Activa React Bits SpotlightCard en todas las tarjetas y Lenis Smooth Scroll sincronizado con GSAP
+  useGlobalCardSpotlight();
+
+  useEffect(() => {
+    return inicializarSmoothScrollLenis();
+  }, []);
 
   const iniciarSesion = (usuario) => {
     setUsuarioActual(usuario);
@@ -1000,6 +1081,7 @@ export default function App() {
   return (
     <AuthContext.Provider value={{ usuarioActual, esAdmin, iniciarSesion, cerrarSesion }}>
       <Router>
+        <AuroraGlassBackground />
         <LotusWatermark />
         <div className="app-shell">
           <Navbar />
