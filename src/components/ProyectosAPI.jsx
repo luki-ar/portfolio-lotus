@@ -1,33 +1,225 @@
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { anime, animarHoverTarjeta } from '../utils/animaciones';
 
+const GITHUB_USUARIO = 'luki-ar';
+const GITHUB_API_URL = `https://api.github.com/users/${GITHUB_USUARIO}/repos?sort=updated&per_page=12`;
+const GITHUB_PERFIL_REPOS_URL = `https://github.com/${GITHUB_USUARIO}?tab=repositories`;
+const CACHE_KEY = 'lotus_github_repos_cache_v1';
+const CACHE_TTL_MS = 30 * 60 * 1000;
+
+// Catálogo real verificado desde github.com/luki-ar para evitar fallos cuando GitHub API
+// agota su cuota pública de 60 req/h por IP (HTTP 403/429).
+const REPOS_RESPALDO_VERIFICADOS = [
+  {
+    id: 'respaldo-portfolio-lotus',
+    name: 'portfolio-lotus',
+    description:
+      'Portfolio de LOTUS, profesionales especializados en la construcción de aplicaciones web modernas bajo arquitectura en 3 capas.',
+    language: 'JavaScript',
+    default_branch: 'main',
+    html_url: 'https://github.com/luki-ar/portfolio-lotus'
+  },
+  {
+    id: 'respaldo-tp9-lengiv',
+    name: 'TP9-LENGIV',
+    description: 'Trabajo práctico de desarrollo web con React — Lenguajes IV.',
+    language: 'JavaScript',
+    html_url: 'https://github.com/luki-ar/TP9-LENGIV'
+  },
+  {
+    id: 'respaldo-tp1-leng4',
+    name: 'TP1-LENG4',
+    description: 'Trabajo práctico inicial de maquetación y estilos — Lenguajes IV.',
+    language: 'CSS',
+    html_url: 'https://github.com/luki-ar/TP1-LENG4'
+  },
+  {
+    id: 'respaldo-tp6-leng4',
+    name: 'TP6---LENG4',
+    description: 'Práctica de desarrollo frontend — Lenguajes IV.',
+    language: 'JavaScript',
+    html_url: 'https://github.com/luki-ar/TP6---LENG4'
+  },
+  {
+    id: 'respaldo-tp8-leng4',
+    name: 'TP8-LENG4',
+    description: 'Práctica de componentes y lógica en JavaScript — Lenguajes IV.',
+    language: 'JavaScript',
+    html_url: 'https://github.com/luki-ar/TP8-LENG4'
+  },
+  {
+    id: 'respaldo-tp10-leng3',
+    name: 'TP10-LENG3',
+    description: 'Proyecto integrador de programación web — Lenguajes III.',
+    language: 'JavaScript',
+    html_url: 'https://github.com/luki-ar/TP10-LENG3'
+  },
+  {
+    id: 'respaldo-parcial-leng3',
+    name: 'ParcialLeng3-ColqueLucasAriel',
+    description: 'Evaluación parcial de JavaScript y DOM — Lenguajes III.',
+    language: 'JavaScript',
+    html_url: 'https://github.com/luki-ar/ParcialLeng3-ColqueLucasAriel'
+  },
+  {
+    id: 'respaldo-parcial',
+    name: 'Parcial-ColqueLucasAriel',
+    description: 'Instancia evaluativa práctica en JavaScript — Lenguajes III.',
+    language: 'JavaScript',
+    html_url: 'https://github.com/luki-ar/Parcial-ColqueLucasAriel'
+  },
+  {
+    id: 'respaldo-tp8-repaso',
+    name: 'TP8-RepasoParcial',
+    description: 'Ejercitación de repaso web en HTML/JavaScript — Lenguajes III.',
+    language: 'HTML',
+    html_url: 'https://github.com/luki-ar/TP8-RepasoParcial'
+  }
+];
+
+function leerCacheRepos() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (
+      !parsed ||
+      typeof parsed.timestamp !== 'number' ||
+      !Array.isArray(parsed.repos) ||
+      parsed.repos.length === 0
+    ) {
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function guardarCacheRepos(repos) {
+  try {
+    localStorage.setItem(
+      CACHE_KEY,
+      JSON.stringify({
+        timestamp: Date.now(),
+        repos
+      })
+    );
+  } catch {
+    // Ignorar si localStorage está deshabilitado o sin espacio
+  }
+}
+
+function formatearHoraReset(resetHeader) {
+  const epochSegundos = Number(resetHeader);
+  if (!Number.isFinite(epochSegundos) || epochSegundos <= 0) return null;
+  try {
+    return new Date(epochSegundos * 1000).toLocaleTimeString('es-AR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch {
+    return null;
+  }
+}
+
 export default function ProyectosAPI() {
   const [repos, setRepos] = useState([]);
   const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState(null);
+  const [origenDatos, setOrigenDatos] = useState('live'); // 'live' | 'cache' | 'rate-limit' | 'fallback'
+  const [aviso, setAviso] = useState(null);
+  const [recargaToken, setRecargaToken] = useState(0);
+  const forzarFetchRef = useRef(false);
   const reposRef = useRef(null);
 
   useEffect(() => {
-    fetch('https://api.github.com/users/luki-ar/repos?sort=updated')
-      .then((respuesta) => {
+    const controller = new AbortController();
+    const forzarFetch = forzarFetchRef.current;
+    forzarFetchRef.current = false;
+
+    const cache = leerCacheRepos();
+    const cacheVigente = cache && Date.now() - cache.timestamp < CACHE_TTL_MS;
+
+    if (!forzarFetch && cacheVigente) {
+      setRepos(cache.repos);
+      setOrigenDatos('cache');
+      setAviso(null);
+      setCargando(false);
+      return () => controller.abort();
+    }
+
+    setCargando(true);
+
+    fetch(GITHUB_API_URL, {
+      signal: controller.signal,
+      headers: { Accept: 'application/vnd.github+json' }
+    })
+      .then(async (respuesta) => {
         if (!respuesta.ok) {
-          throw new Error('No se pudo conectar con la API');
+          const err = new Error(`GitHub API HTTP ${respuesta.status}`);
+          err.status = respuesta.status;
+          err.resetHora = formatearHoraReset(respuesta.headers?.get('X-RateLimit-Reset'));
+          throw err;
         }
         return respuesta.json();
       })
       .then((datos) => {
-        setRepos(datos);
-        setCargando(false);
+        if (controller.signal.aborted) return;
+        if (Array.isArray(datos) && datos.length > 0) {
+          guardarCacheRepos(datos);
+          setRepos(datos);
+          setOrigenDatos('live');
+          setAviso(null);
+        } else {
+          const reposAlternativos = cache?.repos || REPOS_RESPALDO_VERIFICADOS;
+          setRepos(reposAlternativos);
+          setOrigenDatos('fallback');
+          setAviso(
+            `No se recibieron repositorios nuevos desde GitHub API. Mostrando ${
+              cache ? 'caché local' : 'catálogo verificado'
+            } de @${GITHUB_USUARIO}.`
+          );
+        }
       })
       .catch((err) => {
-        setError(err.message);
-        setCargando(false);
+        if (err?.name === 'AbortError' || controller.signal.aborted) return;
+
+        const reposAlternativos = cache?.repos || REPOS_RESPALDO_VERIFICADOS;
+        const esRateLimit = err?.status === 403 || err?.status === 429;
+        const fuenteTexto = cache ? 'el último caché sincronizado' : 'el catálogo verificado';
+
+        setRepos(reposAlternativos);
+        setOrigenDatos(esRateLimit ? 'rate-limit' : 'fallback');
+
+        if (esRateLimit) {
+          setAviso(
+            `La API pública de GitHub alcanzó su límite temporal de 60 consultas/hora por IP${
+              err.resetHora ? ` (se restablece aprox. a las ${err.resetHora} hs)` : ''
+            }. Mostrando ${fuenteTexto} de @${GITHUB_USUARIO}.`
+          );
+        } else {
+          setAviso(
+            `No se pudo sincronizar en vivo con GitHub API en este momento. Mostrando ${fuenteTexto} de @${GITHUB_USUARIO}.`
+          );
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setCargando(false);
+        }
       });
-  }, []);
+
+    return () => controller.abort();
+  }, [recargaToken]);
+
+  const manejarSincronizacion = () => {
+    forzarFetchRef.current = true;
+    setRecargaToken((n) => n + 1);
+  };
 
   // Cascada escalonada con anime.timeline() y spring(1, 80, 10, 0) al cargar los repositorios
   useLayoutEffect(() => {
-    if (cargando || error || repos.length === 0) return;
+    if (cargando || repos.length === 0) return;
     const scope = reposRef.current;
     if (!scope) return;
 
@@ -53,7 +245,7 @@ export default function ProyectosAPI() {
     );
 
     return () => tl.revert();
-  }, [cargando, error, repos.length]);
+  }, [cargando, repos.length]);
 
   if (cargando) {
     return (
@@ -63,16 +255,14 @@ export default function ProyectosAPI() {
     );
   }
 
-  if (error) {
-    return (
-      <div
-        role="alert"
-        className="p-4 my-6 rounded-xl border border-red-500/40 bg-red-500/10 text-red-400 text-center text-sm"
-      >
-        Error: {error}
-      </div>
-    );
-  }
+  const esModoRespaldo = origenDatos === 'rate-limit' || origenDatos === 'fallback';
+  const etiquetaOrigen =
+    origenDatos === 'live'
+      ? 'Integración REST Externa • GitHub API'
+      : origenDatos === 'cache'
+      ? 'GitHub API • Caché Local Sincronizado'
+      : 'GitHub API • Catálogo Verificado de Respaldo';
+  const colorEstado = esModoRespaldo ? '#fbbf24' : origenDatos === 'cache' ? '#4ade80' : '#38bdf8';
 
   return (
     <div ref={reposRef} className="mt-4">
@@ -81,18 +271,56 @@ export default function ProyectosAPI() {
         style={{ willChange: 'transform, opacity' }}
       >
         <div>
-          <span className="tag-tecnologia" style={{ color: '#38bdf8', borderColor: 'rgba(56, 189, 248, 0.35)' }}>
-            <span className="status-dot" style={{ backgroundColor: '#38bdf8' }} />
-            Integración REST Externa • GitHub API
+          <span
+            className="tag-tecnologia"
+            style={{
+              color: colorEstado,
+              borderColor: esModoRespaldo
+                ? 'rgba(251, 191, 36, 0.35)'
+                : origenDatos === 'cache'
+                ? 'rgba(74, 222, 128, 0.35)'
+                : 'rgba(56, 189, 248, 0.35)'
+            }}
+          >
+            <span className="status-dot" style={{ backgroundColor: colorEstado }} />
+            {etiquetaOrigen}
           </span>
           <h2 className="text-2xl font-bold text-slate-100 mt-1">
             Repositorios en Tiempo Real
           </h2>
         </div>
-        <span className="text-xs text-slate-400 tabular-nums">
-          {repos.length} repositorios públicos sincronizados
-        </span>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-xs text-slate-400 tabular-nums">
+            {repos.length} repositorios públicos
+          </span>
+          <button
+            type="button"
+            onClick={manejarSincronizacion}
+            className="btn-secundario-outline"
+            style={{ padding: '6px 14px', fontSize: '0.78rem' }}
+          >
+            {esModoRespaldo ? 'Reintentar en vivo' : 'Sincronizar ahora'}
+          </button>
+        </div>
       </div>
+
+      {aviso && (
+        <div
+          role="status"
+          className="mb-5 p-3.5 rounded-xl border border-amber-500/35 bg-amber-500/10 text-amber-200 text-xs flex flex-wrap items-center justify-between gap-3"
+        >
+          <span>{aviso}</span>
+          <a
+            href={GITHUB_PERFIL_REPOS_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sky-300 underline font-medium shrink-0"
+          >
+            Abrir perfil en GitHub
+          </a>
+        </div>
+      )}
 
       <div className="grid-proyectos">
         {repos.map((repo) => (
@@ -128,9 +356,15 @@ export default function ProyectosAPI() {
             </div>
 
             <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-2">
-              <span className="text-xs text-slate-400">
-                Rama: <strong className="text-slate-200">{repo.default_branch || 'main'}</strong>
-              </span>
+              {repo.default_branch ? (
+                <span className="text-xs text-slate-400">
+                  Rama: <strong className="text-slate-200">{repo.default_branch}</strong>
+                </span>
+              ) : (
+                <span className="text-xs text-slate-400">
+                  Perfil: <strong className="text-slate-200">@{GITHUB_USUARIO}</strong>
+                </span>
+              )}
               <a
                 href={repo.html_url}
                 target="_blank"
