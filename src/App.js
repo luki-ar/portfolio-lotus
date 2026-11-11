@@ -326,13 +326,7 @@ function Inicio() {
           <h2 style={{ fontSize: '1.55rem', fontWeight: 700, letterSpacing: '-0.02em' }} className="text-white">
             Equipo de Trabajo
           </h2>
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="tag-tecnologia" style={{ marginBottom: 0 }}>
-              <span className="status-dot" style={{ background: '#ec4899' }} />
-              Pasá el cursor para ver fotos
-            </span>
-            <span className="text-gradient font-bold">LOTUS.</span>
-          </div>
+          <span className="text-gradient font-bold">LOTUS.</span>
         </div>
         <EquipoTrabajoGrid />
       </div>

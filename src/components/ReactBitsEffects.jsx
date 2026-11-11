@@ -61,26 +61,26 @@ export function AuroraGlassBackground() {
 
 const HIGHLIGHTS_LOTUS = [
   {
-    title: 'Arquitectura & Stack',
+    title: 'Arquitectura del Portfolio',
     description:
-      'React 19, Tailwind CSS, Node.js/Express, PostgreSQL (Supabase), validación estricta con Zod y control de acceso RBAC.'
+      'React, Tailwind CSS, Node.js/Express, PostgreSQL (Supabase), validación estricta con Zod y control de acceso RBAC.'
   },
   {
-    title: 'Sistema de Movimiento',
+    title: 'Movimientos & Animaciones',
     description:
-      'Lenis Smooth Scroll, GSAP ScrollTrigger, Anime.js spring(1, 80, 10, 0) y efectos React Bits (SpotlightCard, BlurText, ShinyText).'
+      'Lenis Smooth Scroll, GSAP ScrollTrigger, Anime.js y efectos React Bits (como SpotlightCard, BlurText, ShinyText).'
   },
   {
     title: 'Disponibilidad & Cloud',
     description:
-      'Despliegue continuo en Vercel (Frontend), Render (API REST) y Supabase Cloud con caché resiliente para GitHub REST API.'
+      'Despliegue continuo en Vercel (Frontend), Render (API REST) y Supabase Cloud.'
   }
 ];
 
 const ENLACES_LOTUS = [
   {
     label: 'GitHub Oficial',
-    handle: '@luki-ar/portfolio-lotus',
+    handle: '@lotus./portfolio-lotus',
     href: 'https://github.com/luki-ar/portfolio-lotus',
     external: true,
     icon: (

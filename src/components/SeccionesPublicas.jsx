@@ -197,10 +197,6 @@ export function PresentacionProfesional({ pedirAPI }) {
       {/* Integrantes del Equipo LOTUS (Revelado interactivo de foto en hover) */}
       <div className="flex items-center justify-between flex-wrap gap-2 mb-5">
         <h2 className="text-2xl font-bold tracking-tight text-white">Integrantes del Equipo</h2>
-        <span className="tag-tecnologia" style={{ marginBottom: 0 }}>
-          <span className="status-dot" style={{ background: '#ec4899' }} />
-          Pasá el cursor por cada tarjeta
-        </span>
       </div>
       <div className="mb-14">
         <EquipoTrabajoGrid />
