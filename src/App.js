@@ -40,6 +40,7 @@ import {
   GlassmorphismPortfolioBlock,
   useGlobalCardSpotlight
 } from './components/ReactBitsEffects';
+import EquipoTrabajoGrid from './components/EquipoLOTUS';
 import './App.css';
 
 // Watermark ambiental de Flor de Loto (Identidad Visual Obsidian Botanical + GSAP Parallax)
@@ -124,13 +125,6 @@ function LotusWatermark() {
 function Inicio() {
   const inicioRef = useRef(null);
   const animarBlurHero = !yaFueAnimada('vista-inicio');
-
-  const equipo = [
-    { nombre: 'Lucas Colque', rol: 'QA & Testing', habilidades: ['Postman', 'Git', 'Jest'] },
-    { nombre: 'Mauricio Navarro', rol: 'Backend Developer', habilidades: ['Node.js', 'Python', 'Express'] },
-    { nombre: 'Gabriel Vargas', rol: 'Database Admin', habilidades: ['PostgreSQL', 'Supabase', 'SQL'] },
-    { nombre: 'Pilar Alvarado', rol: 'Frontend & UI/UX', habilidades: ['React', 'CSS', 'APIs'] }
-  ];
 
   // Orquestación Hero con anime.timeline() sin rebote + Scroll Reveal GSAP (solo la primera visita de la sesión)
   useLayoutEffect(() => {
@@ -332,42 +326,15 @@ function Inicio() {
           <h2 style={{ fontSize: '1.55rem', fontWeight: 700, letterSpacing: '-0.02em' }} className="text-white">
             Equipo de Trabajo
           </h2>
-          <span className="text-gradient">LOTUS.</span>
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="tag-tecnologia" style={{ marginBottom: 0 }}>
+              <span className="status-dot" style={{ background: '#ec4899' }} />
+              Pasá el cursor para ver fotos
+            </span>
+            <span className="text-gradient font-bold">LOTUS.</span>
+          </div>
         </div>
-        <div className="grid-proyectos">
-          {equipo.map((miembro, index) => (
-            <div
-              key={index}
-              className="card-proyecto team-animada flex flex-col justify-between"
-              style={{ willChange: 'transform, opacity' }}
-              onMouseEnter={(e) => animarHoverTarjeta(e, true)}
-              onMouseLeave={(e) => animarHoverTarjeta(e, false)}
-            >
-              <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="icon-badge"
-                    style={{ marginBottom: 0, width: '38px', height: '38px', borderRadius: '10px', fontWeight: 700, fontSize: '0.85rem' }}
-                    aria-hidden="true"
-                  >
-                    {miembro.nombre.split(' ').map((n) => n[0]).join('')}
-                  </div>
-                  <div>
-                    <h3 style={{ marginBottom: '2px', fontSize: '1.15rem' }} className="text-white">{miembro.nombre}</h3>
-                    <p style={{ color: 'var(--accent-3)', fontSize: '0.84rem', fontWeight: '600', marginBottom: 0 }}>
-                      {miembro.rol}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="pt-3 border-t border-white/10">
-                {miembro.habilidades.map((hab, i) => (
-                  <span key={i} className="tag-tecnologia">{hab}</span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+        <EquipoTrabajoGrid />
       </div>
     </div>
   );

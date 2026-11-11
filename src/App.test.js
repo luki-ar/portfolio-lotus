@@ -1,6 +1,7 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { BlurText, GlassmorphismPortfolioBlock } from './components/ReactBitsEffects';
+import EquipoTrabajoGrid from './components/EquipoLOTUS';
 import {
   yaFueAnimada,
   marcarComoAnimada,
@@ -118,5 +119,30 @@ describe('LOTUS Portfolio — GlassmorphismPortfolioBlock, Navegación y Validac
       respuesta: 'Hola, gracias por comunicarte con el equipo LOTUS. Te enviamos la cotización.'
     });
     expect(valRespOk.ok).toBe(true);
+  });
+
+  test('renderiza el equipo LOTUS con las 4 fotos locales y alternancia accesible de retrato', () => {
+    render(<EquipoTrabajoGrid />);
+
+    const miembrosEsperados = [
+      { nombre: 'Lucas Colque', src: '/equipo/lucas.jpg' },
+      { nombre: 'Mauricio Navarro', src: '/equipo/mauricio.jpg' },
+      { nombre: 'Gabriel Vargas', src: '/equipo/gabriel.jpg' },
+      { nombre: 'Pilar Alvarado', src: '/equipo/pilar.jpg' }
+    ];
+
+    miembrosEsperados.forEach(({ nombre, src }) => {
+      expect(screen.getByText(nombre)).toBeInTheDocument();
+      const img = screen.getByAltText(new RegExp(`Retrato de ${nombre}`, 'i'));
+      expect(img).toHaveAttribute('src', src);
+    });
+
+    const toggleLucas = screen.getByRole('button', { name: /Ver foto de Lucas Colque/i });
+    expect(toggleLucas).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(toggleLucas);
+    expect(screen.getByRole('button', { name: /Ocultar foto de Lucas Colque/i })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
   });
 });

@@ -16,6 +16,7 @@ import {
   marcarComoAnimada
 } from '../utils/animaciones';
 import { ShinyText } from './ReactBitsEffects';
+import EquipoTrabajoGrid from './EquipoLOTUS';
 
 // =====================================================================
 // 1. PRESENTACIÓN PROFESIONAL (Perfil, Stack Full-Stack, Servicios y Experiencia)
@@ -99,6 +100,7 @@ export function PresentacionProfesional({ pedirAPI }) {
     );
 
     const limpiarGSAP = animarScrollRevealGSAP(scope, [
+      { selector: '.team-animada', y: 18, staggerDelay: 0.06 },
       { selector: '.stack-card', y: 20, staggerDelay: 0.06 },
       { selector: '.experiencia-card', y: 18, staggerDelay: 0.06 }
     ]);
@@ -190,6 +192,18 @@ export function PresentacionProfesional({ pedirAPI }) {
             Solicitar Cotización / Asesoría
           </Link>
         </div>
+      </div>
+
+      {/* Integrantes del Equipo LOTUS (Revelado interactivo de foto en hover) */}
+      <div className="flex items-center justify-between flex-wrap gap-2 mb-5">
+        <h2 className="text-2xl font-bold tracking-tight text-white">Integrantes del Equipo</h2>
+        <span className="tag-tecnologia" style={{ marginBottom: 0 }}>
+          <span className="status-dot" style={{ background: '#ec4899' }} />
+          Pasá el cursor por cada tarjeta
+        </span>
+      </div>
+      <div className="mb-14">
+        <EquipoTrabajoGrid />
       </div>
 
       {/* Stack Tecnológico Full-Stack */}

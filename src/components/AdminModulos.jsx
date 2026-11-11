@@ -1164,11 +1164,15 @@ export function GestionContactos({ pedirAPI }) {
         method: 'POST',
         body: JSON.stringify({ respuesta: validacion.datos.respuesta })
       });
-      if (res?.contacto) {
-        setContactos((prev) => prev.map((c) => (c.id === item.id ? res.contacto : c)));
+      const contactoActualizado = res?.contacto || (res?.id ? res : null);
+      if (contactoActualizado) {
+        setContactos((prev) =>
+          prev.map((c) => (c.id === item.id ? contactoActualizado : c))
+        );
       }
+      const modoEnvio = res?.email_notificacion?.modo || res?.correo?.modo || 'procesado';
       setFeedbackEnvio(
-        `Respuesta enviada a ${item.email} y registrada en PostgreSQL (modo: ${res?.correo?.modo || 'procesado'}).`
+        `Respuesta enviada a ${item.email} y registrada en PostgreSQL (modo: ${modoEnvio}).`
       );
       setRespondiendoId(null);
       setTextoRespuesta('');
